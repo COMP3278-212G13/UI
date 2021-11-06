@@ -10,7 +10,7 @@ from qtwidgets import AnimatedToggle, PasswordEdit
 from qt_material import apply_stylesheet
 from datetime import datetime, timedelta, timezone
 
-myconn = MySQLConnection(host="localhost", user="root", passwd="20010109", database="facerecognition", autocommit=True)
+myconn = MySQLConnection(host="localhost", user="root", passwd="!REPLACE_WITH_YOUR_PASSWORD!", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
 
 class MainWindow(QMainWindow):
