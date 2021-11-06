@@ -1,23 +1,17 @@
 import sys
 import typing
-import mysql.connector
 
-from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtWidgets import QApplication, QCheckBox, QFrame, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QVBoxLayout, QWidget
-from PyQt5.QtCore import Qt, QSize, QTimer, QUrl
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt
+
+from mysql.connector.connection import MySQLConnection
 from qtwidgets import AnimatedToggle, PasswordEdit
-
 from qt_material import apply_stylesheet
+from datetime import datetime, timedelta, timezone
 
-from datetime import datetime
-
-
-myconn = mysql.connector.connect(host="localhost", user="root", passwd="20010109", database="facerecognition")
+myconn = MySQLConnection(host="localhost", user="root", passwd="20010109", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
-now = datetime.now()
-current_date = now.strftime("%Y-%m-%d")
-current_time = now.strftime("%H:%M:%S")
-
 
 class MainWindow(QMainWindow):
     def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
@@ -31,10 +25,9 @@ class MainWindow(QMainWindow):
         self.main_widget = QStackedWidget() ###########
         self.setCentralWidget(self.main_widget) ###########
         frontpage_widget = FrontpageWidget(self)
-        # frontpage_widget.button.clicked.connect(self.login)
         self.main_widget.addWidget(frontpage_widget)
 
-    def login(self):
+    def setLoggedinWigget(self):
         accounts_widget = AccountsWidget(self) ###########
         self.main_widget.addWidget(accounts_widget) ###########
         self.main_widget.setCurrentWidget(accounts_widget) ###########
@@ -57,18 +50,21 @@ class FrontpageWidget(QWidget):
         # self.cam_feed.setFrameStyle(QFrame.StyledPanel)
 
         # -- Confidence label --
-        self.confi_lbl = QLabel('Confidence: 0')
+        self.confi_lbl = QLabel(f'Confidence: 60')
         self.confi_lbl.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.confi_lbl.setContentsMargins(0,8,5,8)
+        self.confi_lbl.setMinimumWidth(110)
+        self.confi_lbl.setContentsMargins(0,8,0,8)
 
         # -- Confidence slider --
-        self.confi_slider = QSlider()
-        self.confi_slider.setOrientation(Qt.Orientation.Horizontal)
+        self.confi_slider = QSlider(Qt.Orientation.Horizontal)
+        self.confi_slider.setRange(0, 100)
+        self.confi_slider.setSingleStep(1)
+        self.confi_slider.setValue(60)
         self.confi_slider.setTracking(True)
 
         # -- Customer ID / username label --
         self.uid_lbl = QLabel('User ID')
-        self.uid_lbl.setMinimumWidth(70)
+        self.uid_lbl.setMinimumWidth(75)
         self.uid_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # -- Customer ID / username textbox --
@@ -76,20 +72,16 @@ class FrontpageWidget(QWidget):
 
         # -- Login password label --
         self.pwd_lbl = QLabel('Password')
-        self.pwd_lbl.setMinimumWidth(70)
+        self.pwd_lbl.setMinimumWidth(75)
         self.pwd_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # -- login password textbox --
         self.pwd_input = PasswordEdit()
 
         # -- login / sign up mode select button --
-        self.btn_mode = QPushButton("Login / Sign up: Login")
+        self.btn_mode = QPushButton("Login / Sign up: Log in  ")
         self.btn_mode.setCheckable(True)
         self.btn_mode.setChecked(False)
-        # self.btn_mode_style_0 = 'QPushButton {background-color: #00a86c; border: none; color: #ffffff; font-family: ubuntu, arial; font-size: 16px;}'
-        # self.btn_mode_style_1 = 'QPushButton {background-color: #ff6464; border: none; color: #ffffff; font-family: ubuntu, arial; font-size: 16px;}'
-        # self.btn_mode.setStyleSheet(self.btn_mode_style_0)
-
         
         # -- Face Recognition button --
         self.btn_face = QPushButton('Face Recognition')
@@ -146,12 +138,73 @@ class FrontpageWidget(QWidget):
         v_box1.addLayout(h_box_theme)
 
         self.setLayout(v_box1)
-
-        # self.btn_confirm.clicked.connect(self.parent().setDarkMode) ###########
         
         self.theme_toggle.stateChanged.connect(lambda: apply_stylesheet(app, theme='dark_blue.xml') if self.theme_toggle.isChecked() else apply_stylesheet(app, theme='light_blue.xml'))
+        self.confi_slider.valueChanged.connect(self.sliderChange)
+        self.btn_mode.released.connect(self.modeChange)
+        self.btn_confirm.clicked.connect(lambda: self.signup() if self.btn_mode.isChecked() else self.login(sp))
 
         return
+    
+    
+    def sliderChange(self):
+        self.confi_lbl.setText(f'Confidence: {self.confi_slider.value()}')
+
+
+    def modeChange(self):
+        if self.btn_mode.isChecked():
+            self.btn_mode.setText("Login / Sign up: Sign up")
+            self.uid_lbl.setText('Username')
+        else:
+            self.btn_mode.setText("Login / Sign up: Log in  ")
+            self.uid_lbl.setText('User ID')
+
+
+    def signup(self):
+        username = self.uid_input.text()
+        pwd = self.pwd_input.text()
+        if username == '':
+            QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Please input username", QMessageBox.Close)
+        elif pwd == '':
+            QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Please input password", QMessageBox.Close)
+        elif len(username) > 50:
+            QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Username length exceed limit 50", QMessageBox.Close)
+        elif len(pwd) > 70:
+            QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Password length exceed limit 70", QMessageBox.Close)
+        else:
+            gmt8dt = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=8)))
+            cur.execute("INSERT INTO Customer VALUES(null, %s, SHA2(%s, 224), %s, %s)", (username, pwd, gmt8dt.strftime("%Y-%m-%d"), gmt8dt.strftime("%H:%M:%S")))
+            cur.execute("SELECT last_insert_id()")
+            uid = cur.fetchone()[0]
+            QMessageBox.about(self, "Sign up", f"<font size = 5>Sign up successfully!<p><font size = 3>Hello {username}~ Welcome to iKYC<p><font size = 3>Your user ID is: {uid}<p><font size = 4>Please use your user ID to log in")
+            self.btn_mode.setChecked(False)
+            self.modeChange()
+            self.uid_input.setText(str(uid))
+
+    
+    def login(self, parent):
+        uid = self.uid_input.text()
+        if uid.isnumeric():
+            cur.execute(f"""Select login_date, login_time, name From Customer WHERE customer_id = "{uid}" AND password = SHA2("{self.pwd_input.text()}", 224)""")
+            result = cur.fetchall()
+            if result:
+                self.loginSucc(uid, result[0], parent)
+            else:
+                QMessageBox.warning(self, "Warning", "<font size = 5>Login failed!<p><font size = 3>User ID or password incorrect<p><font size = 3>Please check your input", QMessageBox.Close)
+        else:
+            QMessageBox.warning(self, "Warning", "<font size = 5>Login failed!<p><font size = 3>User ID should be a number<p><font size = 3>Please check your input", QMessageBox.Close)
+
+
+    def loginSucc(self, uid, result, parent):
+        global userid
+        userid = uid
+        gmt8dt = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=8)))
+        current_date = gmt8dt.strftime("%Y-%m-%d")
+        current_time = gmt8dt.strftime("%#H:%M:%S")
+        cur.execute("UPDATE Customer SET login_date = %s, login_time = %s WHERE customer_id = %s", (current_date, current_time, uid))
+        (last_date, last_time, name) = (result[0], result[1], result[2])
+        QMessageBox.about(self, "Log in", f"<font size = 5>Welcome {name}!<p><font size = 3>Login time: {current_date} {current_time}<p><font size = 3>Last login: {last_date} {last_time}")
+        parent.setLoggedinWigget()
 
 
 
@@ -176,6 +229,9 @@ class AccountsWidget(QWidget):
 
         return
 
+
+
+userid: str = None
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
