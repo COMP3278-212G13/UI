@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.init_UI()
 
     def init_UI(self):
-        self.setWindowIcon(QIcon('logo.png'))
+        self.setWindowIcon(QIcon('assets/logo.png'))
         self.setWindowTitle('Intelligent Know Your Customer')
 
         self.main_widget = QStackedWidget() ###########
@@ -101,7 +101,7 @@ class FrontpageWidget(QWidget):
         self.btn_face = QPushButton('Face Recognition')
         self.btn_face.setCheckable(True)
         self.btn_face.setChecked(False)
-        self.btn_face.setIcon(QIcon('facerecognition_logo1.png'))
+        self.btn_face.setIcon(QIcon('assets/facerecognition_logo1.png'))
 
         # -- Confirm button --
         self.btn_confirm = QPushButton('Confirm')
