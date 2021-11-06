@@ -158,7 +158,6 @@ class FrontpageWidget(QWidget):
         
 
         self.theme_toggle.stateChanged.connect(lambda: sp.setDarkMode() if self.theme_toggle.isChecked() else sp.setLightMode())
-        # self.theme_toggle.
 
         return
 
