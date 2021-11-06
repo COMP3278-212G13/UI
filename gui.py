@@ -10,8 +10,12 @@ from qtwidgets import AnimatedToggle, PasswordEdit
 from qt_material import apply_stylesheet
 from datetime import datetime, timedelta, timezone
 
+
 myconn = MySQLConnection(host="localhost", user="root", passwd="!REPLACE_WITH_YOUR_PASSWORD!", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
+
+userid: str = None
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
@@ -234,8 +238,6 @@ class AccountsWidget(QWidget):
         return
 
 
-
-userid: str = None
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
