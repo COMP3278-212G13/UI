@@ -189,9 +189,7 @@ class AccountsWidget(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     apply_stylesheet(app, theme='light_blue.xml')
-    # app.setStyle('Fusion')
     main_window = MainWindow()
     main_window.resize(1280, 720)
     main_window.show()
     sys.exit(app.exec_())
-    # gui.setMinimumSize(1600, 1000)
