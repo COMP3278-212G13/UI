@@ -50,7 +50,7 @@ class FrontpageWidget(QWidget):
         # self.cam_feed.setFrameStyle(QFrame.StyledPanel)
 
         # -- Confidence label --
-        self.confi_lbl = QLabel(f'Confidence: 60')
+        self.confi_lbl = QLabel('Confidence: 60')
         self.confi_lbl.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.confi_lbl.setMinimumWidth(110)
         self.confi_lbl.setContentsMargins(0,8,0,8)
@@ -146,7 +146,7 @@ class FrontpageWidget(QWidget):
 
         return
     
-    
+
     def sliderChange(self):
         self.confi_lbl.setText(f'Confidence: {self.confi_slider.value()}')
 
