@@ -39,12 +39,6 @@ class MainWindow(QMainWindow):
         self.main_widget.addWidget(accounts_widget) ###########
         self.main_widget.setCurrentWidget(accounts_widget) ###########
 
-    def setDarkMode(self):
-        apply_stylesheet(app, theme='dark_blue.xml')
-
-    def setLightMode(self):
-        apply_stylesheet(app, theme='light_blue.xml')
-
 
 class FrontpageWidget(QWidget):
     def __init__(self, parent) -> None:
@@ -154,10 +148,8 @@ class FrontpageWidget(QWidget):
         self.setLayout(v_box1)
 
         # self.btn_confirm.clicked.connect(self.parent().setDarkMode) ###########
-        # self.btn_mode.clicked.connect(self.parent().setDarkMode)
         
-
-        self.theme_toggle.stateChanged.connect(lambda: sp.setDarkMode() if self.theme_toggle.isChecked() else sp.setLightMode())
+        self.theme_toggle.stateChanged.connect(lambda: apply_stylesheet(app, theme='dark_blue.xml') if self.theme_toggle.isChecked() else apply_stylesheet(app, theme='light_blue.xml'))
 
         return
 
