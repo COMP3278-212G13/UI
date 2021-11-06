@@ -84,13 +84,13 @@ class FrontpageWidget(QWidget):
         self.btn_mode.setChecked(False)
         
         # -- Face Recognition button --
-        self.btn_face = QPushButton('Face Recognition')
+        self.btn_face = QPushButton('Face Login')
         self.btn_face.setCheckable(True)
         self.btn_face.setChecked(False)
         self.btn_face.setIcon(QIcon('assets/facerecognition_logo1.png'))
 
         # -- Confirm button --
-        self.btn_confirm = QPushButton('Confirm')
+        self.btn_confirm = QPushButton('Log in!')
 
         # -- Theme label --
         self.theme_lbl = QLabel('Night Mode:')
@@ -155,9 +155,13 @@ class FrontpageWidget(QWidget):
         if self.btn_mode.isChecked():
             self.btn_mode.setText("Login / Sign up: Sign up")
             self.uid_lbl.setText('Username')
+            self.btn_face.setText("Face Register")
+            self.btn_confirm.setText("Sign up!")
         else:
             self.btn_mode.setText("Login / Sign up: Log in  ")
             self.uid_lbl.setText('User ID')
+            self.btn_face.setText("Face Login")
+            self.btn_confirm.setText("Log in!")
 
 
     def signup(self):
