@@ -43,6 +43,13 @@ class MainWindow(QMainWindow):
         ## to be written here
         print("account no.", acct_id, "shown")
 
+    # logout - return to login page
+    def setLoggedout(self):
+        self.setWindowTitle('Intelligent Know Your Customer')
+        frontpage_widget = FrontpageWidget(self)
+        self.main_widget.addWidget(frontpage_widget)
+        self.main_widget.setCurrentWidget(frontpage_widget)
+
 
 class FrontpageWidget(QWidget):
     def __init__(self, parent) -> None:
