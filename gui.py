@@ -44,12 +44,12 @@ class FrontpageWidget(QWidget):
     def __init__(self, parent) -> None:
         super(FrontpageWidget, self).__init__(parent)
         self.init_UI(parent)
-        return
 
 
     def init_UI(self, parent):
         sp = self.parent()
         self.device = None
+        self.cam_timer = None
 
         # -- Camera video label --
         self.cam_feed = QLabel()
@@ -152,8 +152,6 @@ class FrontpageWidget(QWidget):
         self.btn_confirm.clicked.connect(lambda: self.signup() if self.btn_mode.isChecked() else self.login(sp))
         self.btn_face.clicked.connect(self.face)
 
-        return
-    
 
     def sliderChange(self):
         self.confi_lbl.setText(f'Confidence: {self.confi_slider.value()}')
@@ -222,9 +220,6 @@ class FrontpageWidget(QWidget):
     def face(self):
         if self.btn_face.isChecked():
             self.conn_cam()
-            self.timer = QTimer()
-            self.timer.timeout.connect(self.update)
-            self.timer.start(50)
             if self.btn_mode.isChecked():  # signup
                 1
             else:  # login
@@ -238,14 +233,19 @@ class FrontpageWidget(QWidget):
 
     def conn_cam(self):
         self.device = cv2.VideoCapture(0)
+        self.cam_timer = QTimer()
+        self.cam_timer.timeout.connect(self.update)
+        self.cam_timer.start(50)
 
     def disconn_cam(self):
-        2
+        self.device.release()
+        self.device = None
+        self.cam_feed.clear()
+        self.cam_timer.stop()
 
     def update(self):
         Qframe = cv2.cvtColor(self.device.read()[1], cv2.COLOR_BGR2RGB)
         self.cam_feed.setPixmap(QPixmap.fromImage(QImage(Qframe, Qframe.shape[1], Qframe.shape[0], Qframe.strides[0], QImage.Format_RGB888)))
-        return
 
 
 class AccountsWidget(QWidget):
