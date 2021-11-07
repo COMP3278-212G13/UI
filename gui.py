@@ -1,6 +1,12 @@
+import os
 import sys
 import typing
 import cv2
+import shutil
+import numpy as np
+from PIL import Image
+import pickle
+import threading
 
 from PyQt5.QtGui import QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
@@ -12,10 +18,8 @@ from qt_material import apply_stylesheet
 from datetime import datetime, timedelta, timezone
 
 
-myconn = MySQLConnection(host="localhost", user="root", passwd="yourpwd", database="facerecognition", autocommit=True)
+myconn = MySQLConnection(host="localhost", user="root", passwd="20010109", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
-
-faceCascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
 
 userid: str = None
 
@@ -58,9 +62,12 @@ class FrontpageWidget(QWidget):
 
 
     def init_UI(self, parent):
-        sp = self.parent()
+        self.sp = self.parent()
         self.device = None
         self.cam_timer = None
+        self.msg = ""
+        self.face_capture_done = False
+        self.faceCascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
 
         # -- Camera video label --
         self.cam_feed = QLabel()
@@ -119,6 +126,7 @@ class FrontpageWidget(QWidget):
             checked_color="#2979ff",
             pulse_checked_color="#442979ff"
         )
+        self.theme_toggle.setChecked(True)
 
 
         h_box_cam = QHBoxLayout()
@@ -160,7 +168,7 @@ class FrontpageWidget(QWidget):
         self.theme_toggle.stateChanged.connect(lambda: apply_stylesheet(app, theme='dark_blue.xml') if self.theme_toggle.isChecked() else apply_stylesheet(app, theme='light_blue.xml'))
         self.confi_slider.valueChanged.connect(self.sliderChange)
         self.btn_mode.released.connect(self.modeChange)
-        self.btn_confirm.clicked.connect(lambda: self.signup() if self.btn_mode.isChecked() else self.login(sp))
+        self.btn_confirm.clicked.connect(lambda: self.signup() if self.btn_mode.isChecked() else self.login())
         self.btn_face.clicked.connect(self.face)
 
 
@@ -192,31 +200,48 @@ class FrontpageWidget(QWidget):
             QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Username length exceed limit 50", QMessageBox.Close)
         elif len(pwd) > 70:
             QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Password length exceed limit 70", QMessageBox.Close)
+        elif not self.face_capture_done:
+            QMessageBox.warning(self, "Sign up", "<font size = 5>Sign up failed!<p><font size = 3>Please capture your face", QMessageBox.Close)
         else:
             gmt8dt = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=8)))
             cur.execute("INSERT INTO Customer VALUES(null, %s, SHA2(%s, 224), %s, %s)", (username, pwd, gmt8dt.strftime("%Y-%m-%d"), gmt8dt.strftime("%H:%M:%S")))
             cur.execute("SELECT last_insert_id()")
             uid = cur.fetchone()[0]
+
+            self.setEnabled(False)
+            self.btn_confirm.setText("Training...")
+            self.sp.setWindowTitle("Training...")
+            os.rename("data/temp", f"data/{uid}")
+            thr = threading.Thread(target=self.train, args=())
+            thr.start()
             QMessageBox.about(self, "Sign up", f"<font size = 5>Sign up successfully!<p><font size = 3>Hello {username}~ Welcome to iKYC<p><font size = 3>Your user ID is: {uid}<p><font size = 4>Please use your user ID to log in")
+            thr.join()
+
+            self.sp.setWindowTitle('Intelligent Know Your Customer')
+            self.btn_face.setChecked(False)
+            self.face()
             self.btn_mode.setChecked(False)
             self.modeChange()
+            self.btn_face.setChecked(True)
             self.uid_input.setText(str(uid))
+            self.setEnabled(True)
+            self.face()
 
     
-    def login(self, parent):
+    def login(self):
         uid = self.uid_input.text()
         if uid.isnumeric():
             cur.execute(f"""Select login_date, login_time, name From Customer WHERE customer_id = "{uid}" AND password = SHA2("{self.pwd_input.text()}", 224)""")
-            result = cur.fetchall()
+            result = cur.fetchone()
             if result:
-                self.loginSucc(uid, result[0], parent)
+                self.loginSucc(uid, result)
             else:
                 QMessageBox.warning(self, "Warning", "<font size = 5>Login failed!<p><font size = 3>User ID or password incorrect<p><font size = 3>Please check your input", QMessageBox.Close)
         else:
             QMessageBox.warning(self, "Warning", "<font size = 5>Login failed!<p><font size = 3>User ID should be a number<p><font size = 3>Please check your input", QMessageBox.Close)
 
 
-    def loginSucc(self, uid, result, parent):
+    def loginSucc(self, uid, result):
         global userid
         userid = uid
         gmt8dt = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=8)))
@@ -225,28 +250,35 @@ class FrontpageWidget(QWidget):
         cur.execute("UPDATE Customer SET login_date = %s, login_time = %s WHERE customer_id = %s", (current_date, current_time, uid))
         (last_date, last_time, name) = (result[0], result[1], result[2])
         QMessageBox.about(self, "Log in", f"<font size = 5>Welcome {name}!<p><font size = 3>Login time: {current_date} {current_time}<p><font size = 3>Last login: {last_date} {last_time}")
-        parent.setLoggedinWigget()
+        self.sp.setLoggedinWigget()
 
     
     def face(self):
+        self.btn_confirm.setEnabled(False)
         if self.btn_face.isChecked():
+            self.btn_mode.setEnabled(False)
             self.conn_cam()
             if self.btn_mode.isChecked():  # signup
-                1
+                self.face_capture()
             else:  # login
-                2
+                self.face_login()
         else:
+            self.btn_mode.setEnabled(True)
             self.disconn_cam()
+            self.msg = ""
             if self.btn_mode.isChecked():  # signup
-                3
-            else:  # login
-                4
+                self.face_capture_done = False
+                self.btn_face.setText("Face Register")
+                shutil.rmtree('data/temp', ignore_errors=True)
+        self.btn_confirm.setEnabled(True)
+
 
     def conn_cam(self):
         self.device = cv2.VideoCapture(0)
         self.cam_timer = QTimer()
-        self.cam_timer.timeout.connect(self.update)
+        self.cam_timer.timeout.connect(self.face_redraw)
         self.cam_timer.start(50)
+
 
     def disconn_cam(self):
         self.device.release()
@@ -254,9 +286,109 @@ class FrontpageWidget(QWidget):
         self.cam_feed.clear()
         self.cam_timer.stop()
 
-    def update(self):
-        Qframe = cv2.cvtColor(self.device.read()[1], cv2.COLOR_BGR2RGB)
+
+    def face_redraw(self):
+        frame = self.device.read()[1]
+        Qframe = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        faces = self.faceCascade.detectMultiScale(
+            cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY),
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=cv2.CASCADE_SCALE_IMAGE,
+        )
+        for (x, y, w, h) in faces:
+            cv2.rectangle(Qframe, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        for i, msg in enumerate(self.msg.split('\n')):
+            cv2.putText(Qframe, msg,
+                org = (30, 50 + 35 * i),
+                fontFace = cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale = 1,
+                color = (255, 60, 60),
+                thickness = 2,
+                lineType = cv2.LINE_AA)
+    
         self.cam_feed.setPixmap(QPixmap.fromImage(QImage(Qframe, Qframe.shape[1], Qframe.shape[0], Qframe.strides[0], QImage.Format_RGB888)))
+
+
+    def face_capture(self):
+        if not os.path.exists('./data/temp'):
+            os.mkdir('data/temp')
+        for i in range(1, 401):
+            if not self.btn_face.isChecked():
+                return
+            self.msg = f"Capturing Face [{i}/400]\nplease wait..."
+            cv2.imwrite("data/temp/temp{:03d}.jpg".format(i), self.device.read()[1])
+            cv2.waitKey(100)
+        self.msg = "Face Capture Done!\nYou can now sign up."
+        self.face_capture_done = True
+        self.btn_face.setText("Face Register: Done!")
+
+
+    def train(self):
+        faceCascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
+        recognizer = cv2.face.LBPHFaceRecognizer_create()
+        current_id = 0
+        label_ids = {}
+        y_label = []
+        x_train = []
+        for root, dirs, files in os.walk("./data"):
+            for file in files:
+                if file.endswith("png") or file.endswith("jpg"):
+                    path = os.path.join(root, file)
+                    label = os.path.basename(root).replace("", "").upper()
+
+                    if label in label_ids:
+                        pass
+                    else:
+                        label_ids[label] = current_id
+                        current_id += 1
+                    id_ = label_ids[label]
+
+                    pil_image = Image.open(path).convert("L")
+                    image_array = np.array(pil_image, "uint8")
+
+                    faces = faceCascade.detectMultiScale(image_array, scaleFactor=1.5, minNeighbors=3)
+
+                    for (x, y, w, h) in faces:
+                        roi = image_array[y:y+h, x:x+w]
+                        x_train.append(roi)
+                        y_label.append(id_)
+
+        with open("data/labels.pickle", "wb") as f:
+            pickle.dump(label_ids, f)
+        recognizer.train(x_train, np.array(y_label))
+        recognizer.save("data/train.yml")
+
+
+    def face_login(self):
+        recognizer = cv2.face.LBPHFaceRecognizer_create()
+        recognizer.read("data/train.yml")
+        face_cascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
+        labels = {}
+        with open("data/labels.pickle", "rb") as f:
+            labels = pickle.load(f)
+            labels = {v: k for k, v in labels.items()}
+        while self.btn_face.isChecked():
+            gray = cv2.cvtColor(self.device.read()[1], cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.5, minNeighbors=3)
+            self.msg = ("no" if len(faces) == 0 else str(len(faces))) + " faces detected\nis seeking you..."
+            for (x, y, w, h) in faces:
+                id, conf = recognizer.predict(gray[y:y + h, x:x + w])
+
+                if 100 - float(conf) >= self.confi_slider.value():
+                    uid = labels[id]
+                    cur.execute(f"Select login_date, login_time, name From Customer WHERE customer_id = \"{uid}\"")
+                    result = cur.fetchone()
+                    self.msg = f"Welcome back, {result[2]}!"
+                    self.btn_face.setChecked(False)
+                    self.face()
+                    self.loginSucc(uid, result)
+
+            cv2.waitKey(100)
+
 
 
 class ProfileWidget(QWidget):
@@ -368,8 +500,10 @@ class ProfileWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    apply_stylesheet(app, theme='light_blue.xml')
+    apply_stylesheet(app, theme='dark_blue.xml')
     main_window = MainWindow()
     main_window.resize(1280, 720)
     main_window.show()
     sys.exit(app.exec_())
+
+# Todo: delete all `print`
