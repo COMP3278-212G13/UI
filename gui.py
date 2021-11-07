@@ -12,7 +12,7 @@ from qt_material import apply_stylesheet
 from datetime import datetime, timedelta, timezone
 
 
-myconn = MySQLConnection(host="localhost", user="root", passwd="qwerty", database="facerecognition", autocommit=True)
+myconn = MySQLConnection(host="localhost", user="root", passwd="yourpwd", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
 
 faceCascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
@@ -38,6 +38,14 @@ class MainWindow(QMainWindow):
         profile_widget = ProfileWidget(self)
         self.main_widget.addWidget(profile_widget)
         self.main_widget.setCurrentWidget(profile_widget)
+
+    def setAccountWidget(self, acct_id):
+        ## to be written here
+        print("account no.", acct_id, "shown")
+
+    # logout - return to login page
+    def setLoggedout(self):
+        self.init_UI()
 
 
 class FrontpageWidget(QWidget):
@@ -266,6 +274,17 @@ class ProfileWidget(QWidget):
         # self.parent().resize(400, 600)
         # self.parent().move(0, 0)
         
+        def logout():
+            reply = QMessageBox.information(self, "Logout", "Are you sure to log out?", QMessageBox.Yes | QMessageBox.No) == 16384
+            if reply:
+                parent.setLoggedout()
+
+        # logout button
+        logout_btn = QPushButton(self)
+        logout_btn.setText("logout")
+        logout_btn.move(1000, 0)
+        logout_btn.clicked.connect(logout)
+        
         # welcome msg
         welcome_label = QLabel(self)
         welcome_label.setText("Welcome, dear " + cname + "!")
@@ -316,6 +335,10 @@ class ProfileWidget(QWidget):
         cur.execute(sql, input)
         data = ()
         data = cur.fetchall()
+
+        def dc_handle(row, col):
+            parent.setAccountWidget(str(data[row][0]))
+
         if data:
             table = QTableWidget(self)
             table.setColumnCount(4)
@@ -332,6 +355,7 @@ class ProfileWidget(QWidget):
             table.move(0, 100)
             table.resize(1000, 1000)
             table.verticalHeader().setVisible(False)
+            table.cellDoubleClicked[int, int].connect(dc_handle)
         else:
             nf_label = QLabel(self)
             nf_label.setText("Sorry! You have no account!")
