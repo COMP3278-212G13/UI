@@ -280,7 +280,7 @@ class ProfileWidget(QWidget):
         def logout():
             reply = QMessageBox.information(self, "Logout", "Are you sure to log out?", QMessageBox.Yes | QMessageBox.No) == 16384
             if reply:
-                parent.init_UI()
+                parent.setLoggedout()
 
         # logout button
         logout_btn = QPushButton(self)
