@@ -1,9 +1,10 @@
 import sys
 import typing
+import cv2
 
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QVBoxLayout, QWidget
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QTimer, Qt
 
 from mysql.connector.connection import MySQLConnection
 from qtwidgets import AnimatedToggle, PasswordEdit
@@ -11,8 +12,10 @@ from qt_material import apply_stylesheet
 from datetime import datetime, timedelta, timezone
 
 
-myconn = MySQLConnection(host="localhost", user="root", passwd="!REPLACE_WITH_YOUR_PASSWORD!", database="facerecognition", autocommit=True)
+myconn = MySQLConnection(host="localhost", user="root", passwd="20010109", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
+
+faceCascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
 
 userid: str = None
 
@@ -46,12 +49,12 @@ class FrontpageWidget(QWidget):
 
     def init_UI(self, parent):
         sp = self.parent()
+        self.device = None
 
         # -- Camera video label --
         self.cam_feed = QLabel()
         self.cam_feed.setMinimumSize(640, 480)
-        # self.cam_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # self.cam_feed.setFrameStyle(QFrame.StyledPanel)
+        self.cam_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # -- Confidence label --
         self.confi_lbl = QLabel('Confidence: 60')
@@ -147,6 +150,7 @@ class FrontpageWidget(QWidget):
         self.confi_slider.valueChanged.connect(self.sliderChange)
         self.btn_mode.released.connect(self.modeChange)
         self.btn_confirm.clicked.connect(lambda: self.signup() if self.btn_mode.isChecked() else self.login(sp))
+        self.btn_face.clicked.connect(self.face)
 
         return
     
@@ -214,6 +218,34 @@ class FrontpageWidget(QWidget):
         QMessageBox.about(self, "Log in", f"<font size = 5>Welcome {name}!<p><font size = 3>Login time: {current_date} {current_time}<p><font size = 3>Last login: {last_date} {last_time}")
         parent.setLoggedinWigget()
 
+    
+    def face(self):
+        if self.btn_face.isChecked():
+            self.conn_cam()
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.update)
+            self.timer.start(50)
+            if self.btn_mode.isChecked():  # signup
+                1
+            else:  # login
+                2
+        else:
+            self.disconn_cam()
+            if self.btn_mode.isChecked():  # signup
+                3
+            else:  # login
+                4
+
+    def conn_cam(self):
+        self.device = cv2.VideoCapture(0)
+
+    def disconn_cam(self):
+        2
+
+    def update(self):
+        Qframe = cv2.cvtColor(self.device.read()[1], cv2.COLOR_BGR2RGB)
+        self.cam_feed.setPixmap(QPixmap.fromImage(QImage(Qframe, Qframe.shape[1], Qframe.shape[0], Qframe.strides[0], QImage.Format_RGB888)))
+        return
 
 
 class AccountsWidget(QWidget):
