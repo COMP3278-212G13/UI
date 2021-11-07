@@ -7,7 +7,7 @@ import mysql.connector
 from datetime import datetime
 
 # 1 Create database connection
-myconn = mysql.connector.connect(host="localhost", user="root", passwd="111111", database="facerecognition")
+myconn = mysql.connector.connect(host="localhost", user="root", passwd="20010109", database="facerecognition")
 cur = myconn.cursor()
 now = datetime.now()
 current_date = now.strftime("%Y-%m-%d")
