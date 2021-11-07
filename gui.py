@@ -3,7 +3,7 @@ import typing
 import cv2
 
 from PyQt5.QtGui import QIcon, QImage, QPixmap
-from PyQt5.QtWidgets import QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from PyQt5.QtCore import QTimer, Qt
 
 from mysql.connector.connection import MySQLConnection
@@ -12,7 +12,7 @@ from qt_material import apply_stylesheet
 from datetime import datetime, timedelta, timezone
 
 
-myconn = MySQLConnection(host="localhost", user="root", passwd="20010109", database="facerecognition", autocommit=True)
+myconn = MySQLConnection(host="localhost", user="root", passwd="qwerty", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
 
 faceCascade = cv2.CascadeClassifier('haarcascade/haarcascade_frontalface_default.xml')
@@ -29,15 +29,15 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon('assets/logo.png'))
         self.setWindowTitle('Intelligent Know Your Customer')
 
-        self.main_widget = QStackedWidget() ###########
-        self.setCentralWidget(self.main_widget) ###########
+        self.main_widget = QStackedWidget()
+        self.setCentralWidget(self.main_widget)
         frontpage_widget = FrontpageWidget(self)
         self.main_widget.addWidget(frontpage_widget)
 
     def setLoggedinWigget(self):
-        accounts_widget = AccountsWidget(self) ###########
-        self.main_widget.addWidget(accounts_widget) ###########
-        self.main_widget.setCurrentWidget(accounts_widget) ###########
+        profile_widget = ProfileWidget(self)
+        self.main_widget.addWidget(profile_widget)
+        self.main_widget.setCurrentWidget(profile_widget)
 
 
 class FrontpageWidget(QWidget):
@@ -248,26 +248,94 @@ class FrontpageWidget(QWidget):
         self.cam_feed.setPixmap(QPixmap.fromImage(QImage(Qframe, Qframe.shape[1], Qframe.shape[0], Qframe.strides[0], QImage.Format_RGB888)))
 
 
-class AccountsWidget(QWidget):
-    def __init__(self, parent) -> None:
-        super(AccountsWidget, self).__init__(parent)
-        self.init_UI()
-        return
+class ProfileWidget(QWidget):
+    def __init__(self, parent):
+        super(ProfileWidget, self).__init__(parent)
+        self.init_window(parent)
+    
+    def init_window(self, parent):
+        sql = "SELECT name, login_date, login_time FROM customer WHERE customer_id = " + userid
+        cur.execute(sql)
+        row = cur.fetchone()
+        cname = row[0]
+        last_date = str(row[1])
+        last_time = str(row[2])
+        
+        # window title
+        self.parent().setWindowTitle("Profile Overview--" + cname)
+        # self.parent().resize(400, 600)
+        # self.parent().move(0, 0)
+        
+        # welcome msg
+        welcome_label = QLabel(self)
+        welcome_label.setText("Welcome, dear " + cname + "!")
+        #welcome_label.setFont(QFont("Calibri", 20, QFont.Bold))
+        welcome_label.move(0, 0)
+        
+        # display username
+        name_label = QLabel(self)
+        name_label.setText("Username: " + cname)
+        name_label.move(0, 50)
 
+        # display last login time
+        login_label = QLabel(self)
+        login_label.setText("Last login: " + last_date + " " + last_time)
+        login_label.move(200, 50)
 
-    def init_UI(self):
-        self.logged = QPushButton('Logged in!!!')
-        self.logged.setMinimumHeight(40)
+        # accounts title
+        acct_label = QLabel(self)
+        acct_label.setText("Your Accounts:    Double click to check account details")
+        acct_label.move(0, 80)
 
-        h_box_conn = QHBoxLayout()
-        h_box_conn.addWidget(self.logged)
-
-        v_box1 = QVBoxLayout()
-        v_box1.addLayout(h_box_conn)
-
-        self.setLayout(v_box1)
-
-        return
+        # table of accounts
+        sql = '''
+            SELECT *
+            FROM (
+            SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CR.bill AS balance_or_bill
+		    FROM account A, credit CR
+		    WHERE (
+	            A.customer_id = %s
+				AND A.account_id = CR.account_id
+		    )
+		    ) AS temp1 UNION (
+		    SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CU.balance AS balance_or_bill
+		    FROM account A, current CU
+		    WHERE (
+	            A.customer_id = %s
+				AND A.account_id = CU.account_id
+		    )
+		    )  UNION (
+		    SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, S.balance AS balance_or_bill
+		    FROM account A, saving S
+		    WHERE (
+	            A.customer_id = %s
+				AND A.account_id = S.account_id
+	        )
+		    ) ORDER BY account_id'''
+        input = (userid, userid, userid)
+        cur.execute(sql, input)
+        data = ()
+        data = cur.fetchall()
+        if data:
+            table = QTableWidget(self)
+            table.setColumnCount(4)
+            table.setRowCount(len(data))
+            table.setHorizontalHeaderLabels(["Account ID", "Account Type", "Currency", "Balance/Bill"])
+            table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            #table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            table.setSelectionBehavior(QAbstractItemView.SelectRows)
+            for i in range(len(data)):
+                for j in range(4):
+                    item = QTableWidgetItem()
+                    item.setText(str(data[i][j]))
+                    table.setItem(i, j, item)
+            table.move(0, 100)
+            table.resize(1000, 1000)
+            table.verticalHeader().setVisible(False)
+        else:
+            nf_label = QLabel(self)
+            nf_label.setText("Sorry! You have no account!")
+            nf_label.move(0, 100)
 
 
 
