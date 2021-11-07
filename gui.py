@@ -43,10 +43,6 @@ class MainWindow(QMainWindow):
         ## to be written here
         print("account no.", acct_id, "shown")
 
-    # logout - return to login page
-    def setLoggedout(self):
-        self.init_UI()
-
 
 class FrontpageWidget(QWidget):
     def __init__(self, parent) -> None:
@@ -277,7 +273,7 @@ class ProfileWidget(QWidget):
         def logout():
             reply = QMessageBox.information(self, "Logout", "Are you sure to log out?", QMessageBox.Yes | QMessageBox.No) == 16384
             if reply:
-                parent.setLoggedout()
+                parent.init_UI()
 
         # logout button
         logout_btn = QPushButton(self)
