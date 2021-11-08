@@ -261,6 +261,7 @@ class FrontpageWidget(QWidget):
             if self.btn_mode.isChecked():  # signup
                 self.face_capture()
             else:  # login
+                self.btn_confirm.setEnabled(True)
                 self.face_login()
         else:
             self.btn_mode.setEnabled(True)
@@ -281,10 +282,11 @@ class FrontpageWidget(QWidget):
 
 
     def disconn_cam(self):
-        self.device.release()
-        self.device = None
-        self.cam_feed.clear()
         self.cam_timer.stop()
+        if self.device is not None:
+            self.device.release()
+            self.device = None
+        self.cam_feed.clear()
 
 
     def face_redraw(self):
