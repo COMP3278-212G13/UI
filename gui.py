@@ -275,8 +275,8 @@ class FrontpageWidget(QWidget):
 
 
     def conn_cam(self):
-        self.device = cv2.VideoCapture(0)
         self.cam_timer = QTimer()
+        self.device = cv2.VideoCapture(0)
         self.cam_timer.timeout.connect(self.face_redraw)
         self.cam_timer.start(50)
 
