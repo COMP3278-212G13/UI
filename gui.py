@@ -547,9 +547,9 @@ class Trans(QWidget):
             from_hr_input = from_hr.text()
             to_hr_input = to_hr.text()
             if from_hr_input == "" :
-                from_hr_input = "00:00";
+                from_hr_input = "00:00"
             if to_hr_input == "":
-                to_hr_input = "23:59";
+                to_hr_input = "23:59"
             from_time = from_hr_input + ":" + "00"
             to_time = to_hr_input + ":" + "59"
 
@@ -570,10 +570,10 @@ class Trans(QWidget):
             
             global from_date
             if from_date != "" and isinstance(from_date, str) != True:
-                from_date = from_date.toString("yyyy-MM-dd");
+                from_date = from_date.toString("yyyy-MM-dd")
             global to_date
             if to_date != "" and isinstance(to_date, str) != True:
-                to_date = to_date.toString("yyyy-MM-dd");
+                to_date = to_date.toString("yyyy-MM-dd")
             
 
             amount_min_input = amount_Min_input.text()
@@ -610,7 +610,7 @@ class Trans(QWidget):
                     to_date_input = to_date
                     delta = timedelta(days=1825)
                     to_date = datetime.strptime(to_date, "%Y-%m-%d")
-                    from_date_input = (to_date - delta).strftime("%Y-%m-%d");
+                    from_date_input = (to_date - delta).strftime("%Y-%m-%d")
                 
                 sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE account_id = %s AND ((%s <= value_date AND value_date <= %s) OR (%s <= maturity_date AND maturity_date <= %s)) AND %s <= balance AND balance <= %s ORDER BY value_date"
                 input = (account_id, from_date_input, to_date_input, now.strftime("%Y-%m-%d"), to_date_input, amount_min, amount_max)
@@ -634,9 +634,9 @@ class Trans(QWidget):
 
             elif type == "Current":
                 if from_hr_input == "" :
-                    from_hr_input = "00:00:00";
+                    from_hr_input = "00:00:00"
                 if to_hr_input == "":
-                    to_hr_input = "23:59:59";
+                    to_hr_input = "23:59:59"
     
                 
                 if from_date == "" and to_date == "":
@@ -653,7 +653,7 @@ class Trans(QWidget):
                     to_date_input = to_date
                     delta = timedelta(days=30)
                     to_date = datetime.strptime(to_date, "%Y-%m-%d")
-                    from_date_input = (to_date - delta).strftime("%Y-%m-%d");
+                    from_date_input = (to_date - delta).strftime("%Y-%m-%d")
         
                 from_datetime = str(from_date_input) + str(from_hr_input)
                 to_datetime = str(to_date_input) + str(to_hr_input)
@@ -730,7 +730,7 @@ class Trans(QWidget):
                     to_date = datetime.strptime(to_date, "%Y-%m-%d")
                     to_date_input = to_date.strftime("%Y%m")
                     delta = timedelta(days=365)
-                    from_date_input = (to_date - delta).strftime("%Y%m");
+                    from_date_input = (to_date - delta).strftime("%Y%m")
                 from_month = int(from_date_input)
                 to_month = int(to_date_input)
 
