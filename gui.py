@@ -770,7 +770,7 @@ class Trans(QWidget):
         output = cur.fetchone()
         cname = output[0]
         name_label.setText("Username: " + cname)
-	name_label.setStyleSheet("font-size:15px;font-weight:bold;")
+	name_label.setStyleSheet("font-size:15px;")
         name_label.move(10, 100)
         
         # display Account type&ID
