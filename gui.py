@@ -11,7 +11,7 @@ import threading
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QToolButton, QDialogButtonBox, QDialog, QFrame, QCalendarWidget, QFormLayout
-from PyQt5.QtCore import QtCore, QTimer, Qt
+from PyQt5.QtCore import QTimer, Qt
 
 from mysql.connector.connection import MySQLConnection
 from qtwidgets import AnimatedToggle, PasswordEdit
