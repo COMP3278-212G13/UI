@@ -8,9 +8,10 @@ from PIL import Image
 import pickle
 import threading
 
+from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QImage, QPixmap
 from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QApplication, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QSlider, QStackedWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QToolButton, QDialogButtonBox, QDialog, QFrame, QCalendarWidget, QFormLayout
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QtCore, QTimer, Qt
 
 from mysql.connector.connection import MySQLConnection
 from qtwidgets import AnimatedToggle, PasswordEdit
@@ -43,7 +44,7 @@ class MainWindow(QMainWindow):
         self.main_widget.addWidget(profile_widget)
         self.main_widget.setCurrentWidget(profile_widget)
 
-    def setAccountWidget(self, acct_id):
+    def setAccountWidget(self):
         transaction_widget = Trans(self)
         self.main_widget.addWidget(transaction_widget)
         self.main_widget.setCurrentWidget(transaction_widget)
@@ -480,7 +481,9 @@ class ProfileWidget(QWidget):
         data = cur.fetchall()
 
         def dc_handle(row, col):
-            parent.setAccountWidget(str(data[row][0]))
+            global account_id
+            account_id = data[row][0]
+            parent.setAccountWidget()
 
         if data:
             table = QTableWidget(self)
@@ -526,21 +529,19 @@ class selectdate(QDialog):
         return (self.calendar.selectedDate())
 
 class Trans(QWidget):
-    def __init__(self) -> None:
-        super().__init__()
-        self.init_UI()
-        
+    def __init__(self, parent) -> None:
+        super(Trans, self).__init__(parent)
+        self.init_UI(parent)
         return
     
     
-    def init_UI(self):
+    def init_UI(self, parent):
         # set properties
         ##self.setStyleSheet('QWidget {background-color: #FFFFFF;}')
         self.setWindowTitle("Transaction")
         
         def back():
-            ## return to profilewidget
-            return
+            parent.setLoggedinWigget()
         
         
         def confirm():
@@ -584,6 +585,7 @@ class Trans(QWidget):
         
         
         def table_show(type, from_hr_input, to_hr_input, from_date, to_date, amount_min_input, amount_max_input):
+            now = datetime.now()
             if amount_min_input == "" :
                 amount_min = 0
             else:
