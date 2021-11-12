@@ -32,6 +32,8 @@ def setTheme(isDark: bool):
         apply_stylesheet(app, theme='dark_blue.xml')
     else:
         apply_stylesheet(app, theme='light_blue.xml')
+def getIsDarkTheme():
+    return isDarkTheme
 
 
 account_id = None
