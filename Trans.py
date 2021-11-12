@@ -5,7 +5,6 @@ from PyQt5.QtCore import Qt
 from datetime import datetime, timedelta
 from selectdate import selectdate
 
-
 class Trans(QWidget):
     def __init__(self, parent, cur, getAccountId) -> None:
         super(Trans, self).__init__(parent)
@@ -93,7 +92,7 @@ class Trans(QWidget):
                     to_date = datetime.strptime(to_date, "%Y-%m-%d")
                     from_date_input = (to_date - delta).strftime("%Y-%m-%d")
                 
-                sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE self.getAccoutId() = %s AND ((%s <= value_date AND value_date <= %s) OR (%s <= maturity_date AND maturity_date <= %s)) AND %s <= balance AND balance <= %s ORDER BY value_date"
+                sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE account_id = %s AND ((%s <= value_date AND value_date <= %s) OR (%s <= maturity_date AND maturity_date <= %s)) AND %s <= balance AND balance <= %s ORDER BY value_date"
                 input = (self.getAccoutId(), from_date_input, to_date_input, now.strftime("%Y-%m-%d"), to_date_input, amount_min, amount_max)
                 self.cur.execute(sql1, input)
                 data = self.cur.fetchall()
@@ -156,8 +155,8 @@ class Trans(QWidget):
                         item.setText(str(data[i][j]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, j, item)
-                    if data[i][1] == self.getAccoutId() :
-                        sql2_1 = "Select Customer.name From Account, Customer WHERE Account.customer_id = Customer.customer_id AND Account.self.getAccoutId() = %s" % data[i][2]
+                    if data[i][1] == self.getAccoutId():
+                        sql2_1 = "Select Customer.name From Account, Customer WHERE Account.customer_id = Customer.customer_id AND Account.account_id = %s" % data[i][2]
                         self.cur.execute(sql2_1)
                         tran_name = self.cur.fetchone()
                         item = QTableWidgetItem()
@@ -173,7 +172,7 @@ class Trans(QWidget):
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 4, item)
                     else:
-                        sql2_2 = "Select Customer.name From Account, Customer WHERE Account.customer_id = Customer.customer_id AND Account.self.getAccoutId() = %s" % data[i][1]
+                        sql2_2 = "Select Customer.name From Account, Customer WHERE Account.customer_id = Customer.customer_id AND Account.account_id = %s" % data[i][1]
                         self.cur.execute(sql2_2)
                         tran_name = self.cur.fetchone()
                         item = QTableWidgetItem()
@@ -212,7 +211,7 @@ class Trans(QWidget):
                 to_month = int(to_date_input)
 
                 
-                sql3 = "Select month, bill, due_date, repay_date From Credit WHERE self.getAccoutId() = %s AND %s <= month AND month <= %s AND %s <= bill AND bill <= %s ORDER BY month DESC"
+                sql3 = "Select month, bill, due_date, repay_date From Credit WHERE account_id = %s AND %s <= month AND month <= %s AND %s <= bill AND bill <= %s ORDER BY month DESC"
                 input = (self.getAccoutId(), from_month, to_month, amount_min, amount_max)
                 self.cur.execute(sql3, input)
                 data = self.cur.fetchall()
@@ -244,7 +243,7 @@ class Trans(QWidget):
         
         # display username
         name_label = QLabel(self)
-        sql = "Select name From Account A, Customer C WHERE A.customer_id = C.customer_id AND self.getAccoutId() = %s" % (self.getAccoutId())
+        sql = "Select name From Account A, Customer C WHERE A.customer_id = C.customer_id AND account_id = %s" % (self.getAccoutId())
         self.cur.execute(sql)
         output = self.cur.fetchone()
         cname = output[0]
@@ -253,7 +252,7 @@ class Trans(QWidget):
         name_label.move(10, 100)
         
         # display Account type&ID
-        sql1 = "Select type, currency From Account WHERE self.getAccoutId() = %s" % (self.getAccoutId())
+        sql1 = "Select type, currency From Account WHERE account_id = %s" % (self.getAccoutId())
         self.cur.execute(sql1)
         output = self.cur.fetchone()
         type = output[0]
