@@ -4,7 +4,7 @@ Installation
 ---
 ```bash
 pip install qtwidgets qt_material
-python gui.py
+python Main_UI.py
 ```
 
 &ensp;
