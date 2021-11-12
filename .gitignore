@@ -2,3 +2,4 @@ tempCodeRunnerFile.py
 test.py
 /data/*
 !/data/.placeholder
+/__pycache__/*
