@@ -24,6 +24,15 @@ cur = myconn.cursor()
 
 userid: str = None
 
+isDarkTheme: bool = False
+def setTheme(isDark: bool):
+    global isDarkTheme
+    isDarkTheme = isDark
+    if isDark:
+        apply_stylesheet(app, theme='dark_blue.xml')
+    else:
+        apply_stylesheet(app, theme='light_blue.xml')
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
@@ -111,7 +120,7 @@ class FrontpageWidget(QWidget):
         self.pwd_input = PasswordEdit()
 
         # -- login / sign up mode select button --
-        self.btn_mode = QPushButton("Login / Sign up: Log in  ")
+        self.btn_mode = QPushButton("Don't have an account? Click me to sign up!")
         self.btn_mode.setCheckable(True)
         self.btn_mode.setChecked(False)
         
@@ -119,7 +128,6 @@ class FrontpageWidget(QWidget):
         self.btn_face = QPushButton('Face Login')
         self.btn_face.setCheckable(True)
         self.btn_face.setChecked(False)
-        self.btn_face.setIcon(QIcon('assets/facerecognition_logo1.png'))
 
         # -- Confirm button --
         self.btn_confirm = QPushButton('Log in!')
@@ -172,7 +180,7 @@ class FrontpageWidget(QWidget):
 
         self.setLayout(v_box1)
         
-        self.theme_toggle.stateChanged.connect(lambda: apply_stylesheet(app, theme='dark_blue.xml') if self.theme_toggle.isChecked() else apply_stylesheet(app, theme='light_blue.xml'))
+        self.theme_toggle.stateChanged.connect(lambda: setTheme(True) if self.theme_toggle.isChecked() else setTheme(False))
         self.confi_slider.valueChanged.connect(self.sliderChange)
         self.btn_mode.released.connect(self.modeChange)
         self.btn_confirm.clicked.connect(lambda: self.signup() if self.btn_mode.isChecked() else self.login())
@@ -185,12 +193,12 @@ class FrontpageWidget(QWidget):
 
     def modeChange(self):
         if self.btn_mode.isChecked():
-            self.btn_mode.setText("Login / Sign up: Sign up")
+            self.btn_mode.setText("Already have an account? Click me to log in!")
             self.uid_lbl.setText('Username')
             self.btn_face.setText("Face Register")
             self.btn_confirm.setText("Sign up!")
         else:
-            self.btn_mode.setText("Login / Sign up: Log in  ")
+            self.btn_mode.setText("Don't have an account? Click me to sign up!")
             self.uid_lbl.setText('User ID')
             self.btn_face.setText("Face Login")
             self.btn_confirm.setText("Log in!")
@@ -944,7 +952,7 @@ class Trans(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    apply_stylesheet(app, theme='dark_blue.xml')
+    setTheme(True)
     main_window = MainWindow()
     main_window.resize(1280, 720)
     main_window.show()
