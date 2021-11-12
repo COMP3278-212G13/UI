@@ -545,8 +545,7 @@ class Trans(QWidget):
     
     def init_UI(self, parent):
         # set properties
-        ##self.setStyleSheet('QWidget {background-color: #FFFFFF;}')
-        self.setWindowTitle("Transaction")
+        self.parent().setWindowTitle("Transaction")
         
         def back():
             parent.setLoggedinWigget()
@@ -630,8 +629,6 @@ class Trans(QWidget):
                 table.setColumnCount(5)
                 table.setHorizontalHeaderLabels(["Saving ID", "Value Date", "Maturity Date", "Interest Rate (p.a.) %", "Balance"])
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-                table.horizontalHeader().setStyleSheet("QHeaderView::section{background:aliceblue;}")
-                table.setStyleSheet("QTableCornerButton::section{background:aliceblue;}")
                 table.setRowCount(len(data))
                 table.verticalHeader().hide()
                 table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -678,8 +675,6 @@ class Trans(QWidget):
                 table.setColumnCount(6)
                 table.setHorizontalHeaderLabels(["Transaction Time", "Transaction Details", "Withdraws", "Deposits", "Balance", "Messages"])
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-                table.horizontalHeader().setStyleSheet("QHeaderView::section{background:aliceblue;}")
-                table.setStyleSheet("QTableCornerButton::section{background:aliceblue;}")
                 table.setRowCount(len(data))
                 table.verticalHeader().hide()
                 table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -753,8 +748,6 @@ class Trans(QWidget):
                 table.setColumnCount(4)
                 table.setHorizontalHeaderLabels(["Month", "Balance", "Due Date", "Repay Date"])
                 table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-                table.horizontalHeader().setStyleSheet("QHeaderView::section{background:aliceblue;}")
-                table.setStyleSheet("QTableCornerButton::section{background:aliceblue;}")
                 table.setRowCount(len(data))
                 table.verticalHeader().hide()
                 table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -841,7 +834,7 @@ class Trans(QWidget):
         # from_date input
         from_datelbl = QToolButton(self)
         from_datelbl.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        from_datelbl.setStyleSheet("background-color:#FFFFFF; font-size:13px; border-radius: 10px; border: 2px groove gray; border-style: outset")
+        from_datelbl.setStyleSheet("font-size:13px; border-radius: 10px; border: 2px groove gray; border-style: outset")
         from_datelbl.setText(" Start Date")
         from_datelbl.setArrowType(Qt.DownArrow)
         from_datelbl.setPopupMode(QToolButton.InstantPopup)
@@ -869,7 +862,7 @@ class Trans(QWidget):
         # to_date input
         to_datelbl = QToolButton(self)
         to_datelbl.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        to_datelbl.setStyleSheet("background-color:#FFFFFF; font-size:13px; border-radius: 10px;  border: 2px groove gray; border-style: outset")
+        to_datelbl.setStyleSheet("font-size:13px; border-radius: 10px;  border: 2px groove gray; border-style: outset")
         to_datelbl.setText(" End Date")
         to_datelbl.setArrowType(Qt.DownArrow)
         to_datelbl.setPopupMode(QToolButton.InstantPopup)
