@@ -949,5 +949,3 @@ if __name__ == '__main__':
     main_window.resize(1280, 720)
     main_window.show()
     sys.exit(app.exec_())
-
-# Todo: delete all `print`
