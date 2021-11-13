@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel,
 from PyQt5.QtCore import Qt
 
 from datetime import datetime, timedelta
-from selectdate import selectdate
 
 class Trans(QWidget):
     def __init__(self, parent, cur, getAccountId) -> None:
