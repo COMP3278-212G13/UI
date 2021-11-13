@@ -14,11 +14,12 @@ from qtwidgets import AnimatedToggle, PasswordEdit
 from datetime import datetime, timedelta, timezone
 
 class FrontpageWidget(QWidget):
-    def __init__(self, parent, cur, setTheme, setUserId) -> None:
+    def __init__(self, parent, cur, setTheme, setUserId, setGmt8dt) -> None:
         super(FrontpageWidget, self).__init__(parent)
         self.cur = cur
         self.setTheme = setTheme
         self.setUserId = setUserId
+        self.setGmt8dt = setGmt8dt
         self.init_UI()
 
 
@@ -204,6 +205,7 @@ class FrontpageWidget(QWidget):
     def loginSucc(self, uid, result):
         self.setUserId(uid)
         gmt8dt = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=8)))
+        self.setGmt8dt(gmt8dt)
         current_date = gmt8dt.strftime("%Y-%m-%d")
         current_time = gmt8dt.strftime("%H:%M:%S")
         self.cur.execute("UPDATE Customer SET login_date = %s, login_time = %s WHERE customer_id = %s", (current_date, current_time, uid))
