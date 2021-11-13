@@ -1,6 +1,4 @@
 tempCodeRunnerFile.py
 test.py
 /data/*
-!/data/labels.pickle
-!/data/train.yml
 /__pycache__/*
