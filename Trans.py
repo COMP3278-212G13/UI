@@ -1,5 +1,5 @@
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QToolButton, QFrame
+from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QFrame, QDateEdit
 from PyQt5.QtCore import Qt
 
 from datetime import datetime, timedelta
@@ -17,6 +17,8 @@ class Trans(QWidget):
     def init_UI(self, parent):
         # set properties
         self.parent().setWindowTitle("Transaction")
+        
+        now = datetime.now()
         
         def back():
             parent.setLoggedinWigget()
@@ -46,14 +48,8 @@ class Trans(QWidget):
             else:
                 to_time = to_time
 
-            
             global from_date
-            if from_date != "" and isinstance(from_date, str) != True:
-                from_date = from_date.toString("yyyy-MM-dd")
             global to_date
-            if to_date != "" and isinstance(to_date, str) != True:
-                to_date = to_date.toString("yyyy-MM-dd")
-            
 
             amount_min_input = amount_Min_input.text()
             amount_max_input = amount_Max_input.text()
@@ -63,7 +59,7 @@ class Trans(QWidget):
         
         
         def table_show(type, from_hr_input, to_hr_input, from_date, to_date, amount_min_input, amount_max_input):
-            now = datetime.now()
+            
             if amount_min_input == "" :
                 amount_min = 0
             else:
@@ -74,26 +70,8 @@ class Trans(QWidget):
                 amount_max = amount_max_input
             
             if type == "Saving":
-                if from_date == "" and to_date == "":
-                    delta = timedelta(days=1825)
-                    from_date_input = (now - delta).strftime("%Y-%m-%d")
-                    to_date_input = (now + delta).strftime("%Y-%m-%d")
-                elif from_date != "" and to_date != "":
-                    from_date_input = from_date
-                    to_date_input = to_date
-                elif from_date != "" and to_date == "":
-                    from_date_input = from_date
-                    delta = timedelta(days=1825)
-                    from_date = datetime.strptime(from_date, "%Y-%m-%d")
-                    to_date_input = (from_date + delta).strftime("%Y-%m-%d")
-                else:
-                    to_date_input = to_date
-                    delta = timedelta(days=1825)
-                    to_date = datetime.strptime(to_date, "%Y-%m-%d")
-                    from_date_input = (to_date - delta).strftime("%Y-%m-%d")
-                
-                sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE account_id = %s AND ((%s <= value_date AND value_date <= %s) OR (%s <= maturity_date AND maturity_date <= %s)) AND %s <= balance AND balance <= %s ORDER BY value_date"
-                input = (self.getAccoutId(), from_date_input, to_date_input, now.strftime("%Y-%m-%d"), to_date_input, amount_min, amount_max)
+                sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE account_id = %s AND (%s <= value_date AND value_date <= %s) AND %s <= balance AND balance <= %s ORDER BY value_date"
+                input = (self.getAccoutId(), from_date, to_date, amount_min, amount_max)
                 self.cur.execute(sql1, input)
                 data = self.cur.fetchall()
 
@@ -115,26 +93,9 @@ class Trans(QWidget):
                     from_hr_input = "00:00:00"
                 if to_hr_input == "":
                     to_hr_input = "23:59:59"
-    
-                
-                if from_date == "" and to_date == "":
-                    delta = timedelta(days=30)
-                    from_date_input = (now - delta).strftime("%Y-%m-%d")
-                    to_date_input = now.strftime("%Y-%m-%d")
-                elif from_date != "" and to_date != "":
-                    from_date_input = from_date
-                    to_date_input = to_date
-                elif from_date != "" and to_date == "":
-                    from_date_input = from_date
-                    to_date_input = now.strftime("%Y-%m-%d")
-                else:
-                    to_date_input = to_date
-                    delta = timedelta(days=30)
-                    to_date = datetime.strptime(to_date, "%Y-%m-%d")
-                    from_date_input = (to_date - delta).strftime("%Y-%m-%d")
         
-                from_datetime = str(from_date_input) + str(from_hr_input)
-                to_datetime = str(to_date_input) + str(to_hr_input)
+                from_datetime = str(from_date) + str(from_hr_input)
+                to_datetime = str(to_date) + str(to_hr_input)
                 from_datetime = datetime.strptime(from_datetime, "%Y-%m-%d%H:%M:%S")
                 to_datetime = datetime.strptime(to_datetime, "%Y-%m-%d%H:%M:%S")
 
@@ -189,28 +150,14 @@ class Trans(QWidget):
                         table.setItem(i, 4, item)
 
             else:
-                if from_date == "" and to_date == "":
-                    delta = timedelta(days=365)
-                    from_date_input = (now - delta).strftime("%Y%m")
-                    to_date_input = now.strftime("%Y%m")
-                elif from_date != "" and to_date != "":
-                    from_date = datetime.strptime(from_date, "%Y-%m-%d")
-                    from_date_input = from_date.strftime("%Y%m")
-                    to_date = datetime.strptime(to_date, "%Y-%m-%d")
-                    to_date_input = to_date.strftime("%Y%m")
-                elif from_date != "" and to_date == "":
-                    from_date = datetime.strptime(from_date, "%Y-%m-%d")
-                    from_date_input = from_date.strftime("%Y%m")
-                    to_date_input = now.strftime("%Y%m")
-                else:
-                    to_date = datetime.strptime(to_date, "%Y-%m-%d")
-                    to_date_input = to_date.strftime("%Y%m")
-                    delta = timedelta(days=365)
-                    from_date_input = (to_date - delta).strftime("%Y%m")
+                from_date = datetime.strptime(from_date, "%Y-%m-%d")
+                from_date_input = from_date.strftime("%Y%m")
+                to_date = datetime.strptime(to_date, "%Y-%m-%d")
+                to_date_input = to_date.strftime("%Y%m")
+
                 from_month = int(from_date_input)
                 to_month = int(to_date_input)
 
-                
                 sql3 = "Select month, bill, due_date, repay_date From Credit WHERE account_id = %s AND %s <= month AND month <= %s AND %s <= bill AND bill <= %s ORDER BY month DESC"
                 input = (self.getAccoutId(), from_month, to_month, amount_min, amount_max)
                 self.cur.execute(sql3, input)
@@ -271,22 +218,6 @@ class Trans(QWidget):
         line.setGeometry(QtCore.QRect(5, 127, 450, 8))
         line.setStyleSheet("background-color: lightgrey; border: 2px groove gray ; border-style: outset")
         line.setFrameShape(QFrame.HLine)
-        
-        # start date calendar
-        def from_cal():
-            fromcal = selectdate()
-            if fromcal.exec():
-                global from_date
-                from_date = fromcal.getInputs()
-                from_datelbl.setText(from_date.toString(" yyyy-MM-dd"))
-    
-        # end date calendar
-        def to_cal():
-            tocal = selectdate()
-            if tocal.exec():
-                global to_date
-                to_date = tocal.getInputs()
-                to_datelbl.setText(to_date.toString(" yyyy-MM-dd"))
 
         
         # from label
@@ -295,20 +226,55 @@ class Trans(QWidget):
         fromlbl.setFixedHeight(20)
         fromlbl.move(20, 155)
         
-        # from_date input
-        from_datelbl = QToolButton(self)
-        from_datelbl.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        from_datelbl.setStyleSheet("font-size:13px; border-radius: 10px; border: 2px groove gray; border-style: outset")
-        from_datelbl.setText(" Start Date")
-        from_datelbl.setArrowType(Qt.DownArrow)
-        from_datelbl.setPopupMode(QToolButton.InstantPopup)
-        from_datelbl.setAutoRaise(True)
-        from_datelbl.setFixedSize(145, 40)
-        from_datelbl.move(60, 145)
+        
+        def fromDateChange():
+            global from_date
+            from_date = self.from_dateEdit.date().toString("yyyy-MM-dd")
+        
+        def toDateChange():
+            global from_date
+            to_date = self.to_dateEdit.date().toString("yyyy-MM-dd")
+        
         global from_date
         from_date = ""
-        from_datelbl.clicked.connect(from_cal)
+        global to_date
+        to_date = ""
         
+        # from_date/to_date input
+        def dateSelection(type, from_date, to_date):
+            if type == "Saving":
+                delta1 = now - timedelta(days=1095)
+                self.from_dateEdit = QDateEdit(delta1, self)
+                delta2 = now + timedelta(days=730)
+                self.to_dateEdit = QDateEdit(delta2, self)
+            
+            elif type == "Current":
+                delta1 = now - timedelta(days=30)
+                self.from_dateEdit = QDateEdit(delta1, self)
+                self.to_dateEdit = QDateEdit(now, self)
+            
+            else:
+                delta1 = now - timedelta(days=180)
+                self.from_dateEdit = QDateEdit(delta1, self)
+                self.to_dateEdit = QDateEdit(now, self)
+
+        dateSelection(type, from_date, to_date)
+
+        self.from_dateEdit.setDisplayFormat('yyyy-MM-dd')
+        self.from_dateEdit.setCalendarPopup(True)
+        self.from_dateEdit.setFixedSize(145, 40)
+        self.from_dateEdit.move(60, 145)
+        from_date = self.from_dateEdit.date().toString("yyyy-MM-dd")
+        self.from_dateEdit.dateChanged.connect(fromDateChange)
+
+        self.to_dateEdit.setDisplayFormat('yyyy-MM-dd')
+        self.to_dateEdit.setCalendarPopup(True)
+        self.to_dateEdit.setFixedSize(145, 40)
+        self.to_dateEdit.move(350, 145)
+        to_date = self.to_dateEdit.date().toString("yyyy-MM-dd")
+        self.to_dateEdit.dateChanged.connect(toDateChange)
+    
+
         # from_time_hour input
         from_hr = QLineEdit(self)
         from_hr.setFixedSize(100, 33)
@@ -322,21 +288,6 @@ class Trans(QWidget):
         tolbl.setText('To ')
         tolbl.setFixedHeight(20)
         tolbl.move(325, 155)
-        
-        # to_date input
-        to_datelbl = QToolButton(self)
-        to_datelbl.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        to_datelbl.setStyleSheet("font-size:13px; border-radius: 10px;  border: 2px groove gray; border-style: outset")
-        to_datelbl.setText(" End Date")
-        to_datelbl.setArrowType(Qt.DownArrow)
-        to_datelbl.setPopupMode(QToolButton.InstantPopup)
-        to_datelbl.setAutoRaise(True)
-        to_datelbl.setFixedSize(145, 40)
-        to_datelbl.move(350, 145)
-        global to_date
-        to_date = ""
-        to_datelbl.clicked.connect(to_cal)
-
         
         # to_time_hour input
         to_hr = QLineEdit(self)
