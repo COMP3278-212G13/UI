@@ -43,13 +43,12 @@ def setAccountId(id: str):
 def getAccountId():
     return account_id
 
-gmt8dt = None
-def setGmt8dt(dt: str):
-    global gmt8dt
-    gmt8dt = dt
-def getGmt8dt():
-    return gmt8dt
-
+lastTime = None
+def setLastTime(time: typing.Tuple[str, str]):
+    global lastTime
+    lastTime = time
+def getLastTime():
+    return lastTime
 
 class MainWindow(QMainWindow):
     def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
@@ -62,7 +61,7 @@ class MainWindow(QMainWindow):
 
         self.main_widget = QStackedWidget()
         self.setCentralWidget(self.main_widget)
-        frontpage_widget = FrontpageWidget(self, cur, setTheme, setUserId, setGmt8dt)
+        frontpage_widget = FrontpageWidget(self, cur, setTheme, setUserId, setLastTime)
         self.main_widget.addWidget(frontpage_widget)
 
     def setLoggedinWigget(self):
@@ -78,7 +77,7 @@ class MainWindow(QMainWindow):
     # logout - return to login page
     def setLoggedout(self):
         self.setWindowTitle('Intelligent Know Your Customer')
-        frontpage_widget = FrontpageWidget(self, cur, setTheme, setUserId, setGmt8dt)
+        frontpage_widget = FrontpageWidget(self, cur, setTheme, setUserId, setLastTime)
         self.main_widget.addWidget(frontpage_widget)
         self.main_widget.setCurrentWidget(frontpage_widget)
     
