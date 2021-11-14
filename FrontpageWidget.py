@@ -209,7 +209,7 @@ class FrontpageWidget(QWidget):
         current_time = gmt8dt.strftime("%#H:%M:%S")
         self.cur.execute("UPDATE Customer SET login_date = %s, login_time = %s WHERE customer_id = %s", (current_date, current_time, uid))
         (last_date, last_time, name) = (result[0], result[1], result[2])
-        self.setLastTime((result[0], result[1]))
+        self.setLastTime((last_date, last_time))
         QMessageBox.about(self, "Log in", f"<font size = 5>Welcome {name}!<p><font size = 3>Login time: {current_date} {current_time}<p><font size = 3>Last login: {last_date} {last_time}")
         self.sp.setLoggedinWigget()
 
