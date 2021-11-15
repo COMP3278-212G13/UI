@@ -3,12 +3,12 @@ from PyQt5.QtGui import QPixmap
 
 
 class ProfileWidget(QWidget):
-    def __init__(self, parent, cur, getUserId, setAccountId, lastTime):
+    def __init__(self, parent, cur, getUserId, setAccountId, getLastTime):
         super(ProfileWidget, self).__init__(parent)
         self.cur = cur
         self.getUserId = getUserId
         self.setAccountId = setAccountId
-        self.lastTime = lastTime
+        self.getLastTime = getLastTime
         self.init_window(parent)
     
     def init_window(self, parent):
@@ -22,8 +22,6 @@ class ProfileWidget(QWidget):
         
         # window title
         self.parent().setWindowTitle("Profile Overview--" + cname)
-        # self.parent().resize(400, 600)
-        # self.parent().move(0, 0)
         
         def logout():
             reply = QMessageBox.information(self, "Logout", "Are you sure to log out?", QMessageBox.Yes | QMessageBox.No) == 16384
@@ -44,13 +42,6 @@ class ProfileWidget(QWidget):
         img_lbl.setMinimumSize(200, 30)
         img_lbl.setScaledContents(True)
         
-        
-        # welcome msg
-        #welcome_label = QLabel(self)
-        #welcome_label.setText("Welcome, dear " + cname + "!")
-        ##welcome_label.setFont(QFont("Calibri", 20, QFont.Bold))
-        #welcome_label.move(0, 0)
-        
         # display username
         name_label = QLabel(self)
         name_label.setText("Username: " + cname)
@@ -58,7 +49,7 @@ class ProfileWidget(QWidget):
 
         # display last login time
         login_label = QLabel(self)
-        login_label.setText("Last login: " + str(self.lastTime))
+        login_label.setText("Last login: " + str(self.getLastTime()[0]) + " " + str(self.getLastTime()[1]))
         login_label.move(220, 90)
 
         # accounts title
