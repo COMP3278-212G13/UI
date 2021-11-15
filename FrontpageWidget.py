@@ -206,7 +206,7 @@ class FrontpageWidget(QWidget):
         self.setUserId(uid)
         gmt8dt = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=8)))
         current_date = gmt8dt.strftime("%Y-%m-%d")
-        current_time = gmt8dt.strftime("%#H:%M:%S")
+        current_time = gmt8dt.strftime("%H:%M:%S")
         self.cur.execute("UPDATE Customer SET login_date = %s, login_time = %s WHERE customer_id = %s", (current_date, current_time, uid))
         (last_date, last_time, name) = (result[0], result[1], result[2])
         self.setLastTime((last_date, last_time))
