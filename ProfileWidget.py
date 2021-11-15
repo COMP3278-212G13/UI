@@ -17,8 +17,8 @@ class ProfileWidget(QWidget):
         self.cur.execute(sql)
         row = self.cur.fetchone()
         cname = row[0]
-        last_date = str(row[1])
-        last_time = str(row[2])
+        current_date = str(row[1])
+        current_time = str(row[2])
         
         # window title
         self.parent().setWindowTitle("Profile Overview--" + cname)
@@ -51,6 +51,11 @@ class ProfileWidget(QWidget):
         login_label = QLabel(self)
         login_label.setText("Last login: " + str(self.getLastTime()[0]) + " " + str(self.getLastTime()[1]))
         login_label.move(220, 90)
+        
+        # display current login time
+        cur_lbl = QLabel(self)
+        cur_lbl.setText("Current login: " + current_date + " " + current_time)
+        cur_lbl.move(480, 90)
 
         # accounts title
         acct_label = QLabel(self)
