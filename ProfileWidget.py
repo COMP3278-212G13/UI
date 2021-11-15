@@ -54,17 +54,17 @@ class ProfileWidget(QWidget):
         # display username
         name_label = QLabel(self)
         name_label.setText("Username: " + cname)
-        name_label.move(0, 80)
+        name_label.move(20, 90)
 
         # display last login time
         login_label = QLabel(self)
         login_label.setText("Last login: " + str(self.lastTime))
-        login_label.move(200, 80)
+        login_label.move(220, 90)
 
         # accounts title
         acct_label = QLabel(self)
         acct_label.setText("Your Accounts:    Double click to check account details")
-        acct_label.move(0, 100)
+        acct_label.move(20, 120)
 
         # table of accounts
         sql = '''
@@ -105,7 +105,7 @@ class ProfileWidget(QWidget):
 
         if data:
             table = QTableWidget(self)
-            table.resize(1200, 590)
+            table.resize(1200, 400)
             table.setColumnCount(4)
             table.setRowCount(len(data))
             table.setHorizontalHeaderLabels(["Account ID", "Account Type", "Currency", "Balance/Bill"])
@@ -121,7 +121,7 @@ class ProfileWidget(QWidget):
                     else:
                         item.setText(str(data[i][j]))
                     table.setItem(i, j, item)
-            table.move(30, 120)
+            table.move(30, 160)
             table.verticalHeader().setVisible(False)
             table.cellDoubleClicked[int, int].connect(dc_handle)
         else:
