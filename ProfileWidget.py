@@ -1,12 +1,14 @@
 from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QWidget
+from PyQt5.QtGui import QPixmap
 
 
 class ProfileWidget(QWidget):
-    def __init__(self, parent, cur, getUserId, setAccountId):
+    def __init__(self, parent, cur, getUserId, setAccountId, lastTime):
         super(ProfileWidget, self).__init__(parent)
         self.cur = cur
         self.getUserId = getUserId
         self.setAccountId = setAccountId
+        self.lastTime = lastTime
         self.init_window(parent)
     
     def init_window(self, parent):
@@ -31,14 +33,21 @@ class ProfileWidget(QWidget):
         # logout button
         logout_btn = QPushButton(self)
         logout_btn.setText("logout")
-        logout_btn.move(1000, 0)
+        logout_btn.move(1199, 0)
         logout_btn.clicked.connect(logout)
         
+        # image
+        pix = QPixmap('assets/Title1.png')
+        img_lbl = QLabel(self)
+        img_lbl.setPixmap(pix)
+        img_lbl.move(0, 0)
+        img_lbl.setScaledContents(True)
+        
         # welcome msg
-        welcome_label = QLabel(self)
-        welcome_label.setText("Welcome, dear " + cname + "!")
-        #welcome_label.setFont(QFont("Calibri", 20, QFont.Bold))
-        welcome_label.move(0, 0)
+        #welcome_label = QLabel(self)
+        #welcome_label.setText("Welcome, dear " + cname + "!")
+        ##welcome_label.setFont(QFont("Calibri", 20, QFont.Bold))
+        #welcome_label.move(0, 0)
         
         # display username
         name_label = QLabel(self)
@@ -47,7 +56,7 @@ class ProfileWidget(QWidget):
 
         # display last login time
         login_label = QLabel(self)
-        login_label.setText("Last login: " + last_date + " " + last_time)
+        login_label.setText("Last login: " + str(self.lastTime))
         login_label.move(200, 50)
 
         # accounts title
@@ -59,27 +68,30 @@ class ProfileWidget(QWidget):
         sql = '''
             SELECT *
             FROM (
-            SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CR.bill AS balance_or_bill
-            FROM account A, credit CR
-            WHERE (
-                A.customer_id = %s
-                AND A.account_id = CR.account_id
-            )
-            ) AS temp1 UNION (
-            SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CU.balance AS balance_or_bill
-            FROM account A, current CU
-            WHERE (
-                A.customer_id = %s
-                AND A.account_id = CU.account_id
-            )
-            )  UNION (
-            SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, S.balance AS balance_or_bill
-            FROM account A, saving S
-            WHERE (
-                A.customer_id = %s
-                AND A.account_id = S.account_id
-            )
-            ) ORDER BY account_id'''
+                SELECT account_id, type, currency, balance_or_bill
+		        FROM(
+		            SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CR.bill AS balance_or_bill
+                    FROM account A, credit CR
+                    WHERE (
+                        A.customer_id = %s
+	                    AND A.account_id = CR.account_id
+                    ) ORDER BY CR.month DESC limit 1
+		            ) AS temp
+		        ) AS temp1 UNION (
+		        SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, SUM(CU.balance) AS balance_or_bill
+		        FROM account A, current CU
+		        WHERE (
+	                A.customer_id = %s
+				    AND A.account_id = CU.account_id
+		        ) GROUP BY account_id
+		        )  UNION (
+		        SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, SUM(S.balance) AS balance_or_bill
+		        FROM account A, saving S
+		        WHERE (
+	                A.customer_id = %s
+				    AND A.account_id = S.account_id
+	            ) GROUP BY account_id
+		    ) ORDER BY account_id'''
         input = (userid, userid, userid)
         self.cur.execute(sql, input)
         data = ()
@@ -91,19 +103,23 @@ class ProfileWidget(QWidget):
 
         if data:
             table = QTableWidget(self)
+            table.resize(1200, 600)
             table.setColumnCount(4)
             table.setRowCount(len(data))
             table.setHorizontalHeaderLabels(["Account ID", "Account Type", "Currency", "Balance/Bill"])
             table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            table.verticalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
             #table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
             table.setSelectionBehavior(QAbstractItemView.SelectRows)
             for i in range(len(data)):
                 for j in range(4):
                     item = QTableWidgetItem()
-                    item.setText(str(data[i][j]))
+                    if (j == 3):
+                        item.setText(str(format(data[i][j], '.1f')))
+                    else:
+                        item.setText(str(data[i][j]))
                     table.setItem(i, j, item)
-            table.move(0, 100)
-            table.resize(1000, 1000)
+            table.move(30, 100)
             table.verticalHeader().setVisible(False)
             table.cellDoubleClicked[int, int].connect(dc_handle)
         else:
