@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         self.main_widget.addWidget(frontpage_widget)
 
     def setLoggedinWigget(self):
-        profile_widget = ProfileWidget(self, cur, getUserId, setAccountId)
+        profile_widget = ProfileWidget(self, cur, getUserId, setAccountId, getLastTime)
         self.main_widget.addWidget(profile_widget)
         self.main_widget.setCurrentWidget(profile_widget)
 
