@@ -6,7 +6,7 @@ from PIL import Image
 import pickle
 import threading
 
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPicture, QPixmap
 from PyQt5.QtWidgets import QMessageBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget
 from PyQt5.QtCore import QTimer, Qt
 
@@ -36,6 +36,7 @@ class FrontpageWidget(QWidget):
         self.cam_feed = QLabel()
         self.cam_feed.setMinimumSize(640, 480)
         self.cam_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cam_feed.setPixmap(QPixmap('assets/facerecognition_logo501.png'))
 
         # -- Confidence label --
         self.confi_lbl = QLabel('Confidence: 60')
@@ -144,11 +145,14 @@ class FrontpageWidget(QWidget):
             self.uid_lbl.setText('Username')
             self.btn_face.setText("Face Register")
             self.btn_confirm.setText("Sign up!")
+            self.confi_slider.setEnabled(False)
         else:
             self.btn_mode.setText("Don't have an account? Click me to sign up!")
             self.uid_lbl.setText('User ID')
             self.btn_face.setText("Face Login")
             self.btn_confirm.setText("Log in!")
+            self.confi_slider.setEnabled(True)
+
 
 
     def signup(self):
