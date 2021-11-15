@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
 
         self.main_widget = QStackedWidget()
         self.setCentralWidget(self.main_widget)
-        frontpage_widget = FrontpageWidget(self, cur, setTheme, setUserId, setLastTime)
+        frontpage_widget = FrontpageWidget(self, cur, setTheme, getIsDarkTheme, setUserId, setLastTime)
         self.main_widget.addWidget(frontpage_widget)
 
     def setLoggedinWigget(self):
@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
     # logout - return to login page
     def setLoggedout(self):
         self.setWindowTitle('Intelligent Know Your Customer')
-        frontpage_widget = FrontpageWidget(self, cur, setTheme, setUserId, setLastTime)
+        frontpage_widget = FrontpageWidget(self, cur, setTheme, getIsDarkTheme, setUserId, setLastTime)
         self.main_widget.addWidget(frontpage_widget)
         self.main_widget.setCurrentWidget(frontpage_widget)
     

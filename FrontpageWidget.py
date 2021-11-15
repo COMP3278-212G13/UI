@@ -14,12 +14,13 @@ from qtwidgets import AnimatedToggle, PasswordEdit
 from datetime import datetime, timedelta, timezone
 
 class FrontpageWidget(QWidget):
-    def __init__(self, parent, cur, setTheme, setUserId, setLastTime) -> None:
+    def __init__(self, parent, cur, setTheme, getIsDarkTheme, setUserId, setLastTime) -> None:
         super(FrontpageWidget, self).__init__(parent)
         self.cur = cur
         self.setTheme = setTheme
         self.setUserId = setUserId
         self.setLastTime = setLastTime
+        self.getIsDarkTheme = getIsDarkTheme
         self.init_UI()
 
 
@@ -87,7 +88,7 @@ class FrontpageWidget(QWidget):
             checked_color="#2979ff",
             pulse_checked_color="#442979ff"
         )
-        self.theme_toggle.setChecked(True)
+        self.theme_toggle.setChecked(True if self.getIsDarkTheme() else False)
 
 
         h_box_cam = QHBoxLayout()
