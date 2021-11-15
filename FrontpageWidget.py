@@ -6,7 +6,7 @@ from PIL import Image
 import pickle
 import threading
 
-from PyQt5.QtGui import QImage, QPicture, QPixmap
+from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QMessageBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget
 from PyQt5.QtCore import QTimer, Qt
 
