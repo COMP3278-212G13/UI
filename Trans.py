@@ -69,8 +69,8 @@ class Trans(QWidget):
                 amount_max = amount_max_input
             
             if type == "Saving":
-                sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE account_id = %s AND (%s <= value_date AND value_date <= %s) AND %s <= balance AND balance <= %s ORDER BY value_date"
-                input = (self.getAccoutId(), from_date, to_date, amount_min, amount_max)
+                sql1 = "Select saving_id, value_date, maturity_date, interest_rate, balance From Saving WHERE account_id = %s AND (%s <= value_date AND value_date <= %s) AND %s <= maturity_date AND %s <= balance AND balance <= %s ORDER BY value_date"
+                input = (self.getAccoutId(), from_date, to_date, now, amount_min, amount_max)
                 self.cur.execute(sql1, input)
                 data = self.cur.fetchall()
 
@@ -84,6 +84,7 @@ class Trans(QWidget):
                     for j in range(5):
                         item = QTableWidgetItem()
                         item.setText(str(data[i][j]))
+                        item.setToolTip(str(data[i][j]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, j, item)
 
@@ -114,6 +115,7 @@ class Trans(QWidget):
                         item = QTableWidgetItem()
                         item.setText(str(data[i][j]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
+                        item.setToolTip(str(data[i][j]))
                         table.setItem(i, j, item)
                     if data[i][1] == self.getAccoutId():
                         sql2_1 = "Select Customer.name From Account, Customer WHERE Account.customer_id = Customer.customer_id AND Account.account_id = %s" % data[i][2]
@@ -121,14 +123,17 @@ class Trans(QWidget):
                         tran_name = self.cur.fetchone()
                         item = QTableWidgetItem()
                         item.setText(str("Transaction to " + tran_name[0] + " " + str(data[i][2])))
+                        item.setToolTip(str("Transaction to " + tran_name[0] + " " + str(data[i][2])))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 1, item)
                         item = QTableWidgetItem()
                         item.setText(str(data[i][3]))
+                        item.setToolTip(str(data[i][3]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 2, item)
                         item = QTableWidgetItem()
                         item.setText(str(data[i][4]))
+                        item.setToolTip(str(data[i][4]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 4, item)
                     else:
@@ -137,14 +142,17 @@ class Trans(QWidget):
                         tran_name = self.cur.fetchone()
                         item = QTableWidgetItem()
                         item.setText(str("Transaction from " + tran_name[0] + " " + str(data[i][1])))
+                        item.setToolTip(str("Transaction from " + tran_name[0] + " " + str(data[i][1])))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 1, item)
                         item = QTableWidgetItem()
                         item.setText(str(data[i][3]))
+                        item.setToolTip(str(data[i][3]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 3, item)
                         item = QTableWidgetItem()
                         item.setText(str(data[i][6]))
+                        item.setToolTip(str(data[i][6]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
                         table.setItem(i, 4, item)
 
@@ -173,6 +181,7 @@ class Trans(QWidget):
                         item = QTableWidgetItem()
                         item.setText(str(data[i][j]))
                         item.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
+                        item.setToolTip(str(data[i][j]))
                         table.setItem(i, j, item)
 
         # back button
@@ -244,8 +253,7 @@ class Trans(QWidget):
             if type == "Saving":
                 delta1 = now - timedelta(days=1095)
                 self.from_dateEdit = QDateEdit(delta1, self)
-                delta2 = now + timedelta(days=730)
-                self.to_dateEdit = QDateEdit(delta2, self)
+                self.to_dateEdit = QDateEdit(now, self)
             
             elif type == "Current":
                 delta1 = now - timedelta(days=30)
@@ -353,3 +361,4 @@ class Trans(QWidget):
         table_show(type, from_hr_input, to_hr_input, from_date, to_date, amount_min_input, amount_max_input)
 
         return
+
