@@ -123,4 +123,4 @@ class ProfileWidget(QWidget):
         else:
             nf_label = QLabel(self)
             nf_label.setText("Sorry! You have no account!")
-            nf_label.move(0, 120)
+            nf_label.move(20, 150)
