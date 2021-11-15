@@ -41,7 +41,9 @@ class ProfileWidget(QWidget):
         img_lbl = QLabel(self)
         img_lbl.setPixmap(pix)
         img_lbl.move(0, 0)
+        img_lbl.setMinimumSize(200, 30)
         img_lbl.setScaledContents(True)
+        
         
         # welcome msg
         #welcome_label = QLabel(self)
@@ -52,17 +54,17 @@ class ProfileWidget(QWidget):
         # display username
         name_label = QLabel(self)
         name_label.setText("Username: " + cname)
-        name_label.move(0, 50)
+        name_label.move(0, 80)
 
         # display last login time
         login_label = QLabel(self)
         login_label.setText("Last login: " + str(self.lastTime))
-        login_label.move(200, 50)
+        login_label.move(200, 80)
 
         # accounts title
         acct_label = QLabel(self)
         acct_label.setText("Your Accounts:    Double click to check account details")
-        acct_label.move(0, 80)
+        acct_label.move(0, 100)
 
         # table of accounts
         sql = '''
@@ -103,7 +105,7 @@ class ProfileWidget(QWidget):
 
         if data:
             table = QTableWidget(self)
-            table.resize(1200, 600)
+            table.resize(1200, 590)
             table.setColumnCount(4)
             table.setRowCount(len(data))
             table.setHorizontalHeaderLabels(["Account ID", "Account Type", "Currency", "Balance/Bill"])
@@ -119,10 +121,10 @@ class ProfileWidget(QWidget):
                     else:
                         item.setText(str(data[i][j]))
                     table.setItem(i, j, item)
-            table.move(30, 100)
+            table.move(30, 120)
             table.verticalHeader().setVisible(False)
             table.cellDoubleClicked[int, int].connect(dc_handle)
         else:
             nf_label = QLabel(self)
             nf_label.setText("Sorry! You have no account!")
-            nf_label.move(0, 100)
+            nf_label.move(0, 120)
