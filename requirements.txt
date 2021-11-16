@@ -1,0 +1,8 @@
+qtwidgets
+qt_material
+pyqt5-tools
+mysql-connector-python
+opencv-python
+opencv-contrib-python
+numpy
+Pillow
