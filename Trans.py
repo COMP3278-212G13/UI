@@ -261,7 +261,6 @@ class Trans(QWidget):
         sql1 = "Select type, currency From Account WHERE account_id = %s" % (self.getAccoutId())
         self.cur.execute(sql1)
         output = self.cur.fetchone()
-        acct = self.getAccoutId()
         type = output[0]
         currency = output[1]
         acc_label = QLabel(self)
