@@ -1,5 +1,5 @@
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QFrame, QDateEdit, QDialog
+from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QFrame, QDateEdit, QDialog, QDialogButtonBox, QFormLayout
 from PyQt5.QtCore import Qt
 
 from datetime import datetime, timedelta
@@ -10,20 +10,17 @@ class TransferInputDialog(QDialog):
         
         QDialog.setWindowTitle(self, 'Transfer')
         
-        sql = "SELECT A.account_id, A.currency, CU.balance FROM account A, current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" % self.getAccoutId()
-        cur.execute(sql)
-        data = cur.fetchone()
+        global acct, curr, balance
         
         self.from_acct = QLabel(self)
-        text = "From        Account " + str(data[0])
+        text = "From         Account " + str(acct)
         self.from_acct.setText(text)
         self.from_acct.setFixedSize(150, 15)
         
         self.from_balance = QLabel(self)
-        text = "Balance:  " + str(data[2]) + "   " + str(data[1])
+        text = "Balance:   " + str(balance) + "   " + str(curr)
         self.from_balance.setText(text)
         self.from_balance.setFixedSize(150, 20)
-        
         
         self.to_acct = QLineEdit(self)
         self.to_acct.setPlaceholderText("Payee's Account ID")
@@ -264,6 +261,7 @@ class Trans(QWidget):
         sql1 = "Select type, currency From Account WHERE account_id = %s" % (self.getAccoutId())
         self.cur.execute(sql1)
         output = self.cur.fetchone()
+        acct = self.getAccoutId()
         type = output[0]
         currency = output[1]
         acc_label = QLabel(self)
@@ -422,8 +420,8 @@ class Trans(QWidget):
                 amount_input = input[1]
                 message_input = input[2]
                 sql1 = "SELECT A.account_id, A.currency, CU.balance FROM account A, current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" %self.getAccoutId()
-                cur.execute(sql1)
-                data1 = cur.fetchone()
+                self.cur.execute(sql1)
+                data1 = self.cur.fetchone()
                 from_acct = data1[0]
                 from_cur = data1[1]
                 from_balance = data1[2]
@@ -441,8 +439,8 @@ class Trans(QWidget):
                     QMessageBox.warning(self, "Warning", "<font size = 4>Transfer amount exceed your current account balance<p style='margin:10px'><font size = 3>Please try again", QMessageBox.Close)
                 else:
                     sql2 = "SELECT A.account_id, A.type, A.currency, CU.balance FROM account A, current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" % to_input
-                    cur.execute(sql2)
-                    data2 = cur.fetchone()
+                    self.cur.execute(sql2)
+                    data2 = self.cur.fetchone()
                     if data2 == None:
                         QMessageBox.warning(self, "Warning", "<font size = 5>Payee's Account ID is incorrect or not a current account<p style='margin:10px'><font size = 3>Please check it and try again", QMessageBox.Close)
                     else:
@@ -458,14 +456,14 @@ class Trans(QWidget):
                             to_balance_after = float(to_balance) + float(amount_input)
                             update1 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
                             val = (from_balance_after, from_acct)
-                            cur.execute(update1, val)
+                            self.cur.execute(update1, val)
                             update2 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
                             val = (to_balance_after, to_acct)
-                            cur.execute(update2, val)
+                            self.cur.execute(update2, val)
                             update3 =  "INSERT INTO Transaction VALUES (null, %s, %s, %s, %s, %s, %s, %s)"
                             current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
                             val = (from_acct, to_acct, float(amount_input), current_datetime, from_balance_after, to_balance_after, message_input)
-                            cur.execute(update3, val)
+                            self.cur.execute(update3, val)
                             QMessageBox.about(self, "Transfer Successfully", "<font size = 5>Your transfer transaction is completed<p style='margin:10px'><font size = 3>Please refresh the page by press SUBMIT button to see latest transaction")
         
 
@@ -476,6 +474,13 @@ class Trans(QWidget):
             transfer_btn = QPushButton(self)
             transfer_btn.setText("Transfer")
             transfer_btn.move(1100, 198)
+            sql1 = "SELECT A.account_id, A.currency, CU.balance FROM Account A, Current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" % (self.getAccoutId())
+            self.cur.execute(sql1)
+            output = self.cur.fetchone()
+            global acct, curr, balance
+            acct = output[0]
+            curr = output[1]
+            balance = output[2]
             transfer_btn.clicked.connect(transfer)
         
         
