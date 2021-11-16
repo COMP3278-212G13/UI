@@ -453,7 +453,7 @@ class Trans(QWidget):
                 elif to_input.isdigit() == False:
                     QMessageBox.warning(self, "Warning", "<font size = 4>Payee's Account ID should be a number. Please input correct Payee's Account ID", QMessageBox.Close)
                 elif amount_input.isdigit() == False:
-                    QMessageBox.warning(self, "Warning", "<font size = 4>Transfer amount should be a number. Please input correct transfer amount", QMessageBox.Close)
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Transfer amount should be a positive number. Please input correct transfer amount", QMessageBox.Close)
                 elif int(amount_input) <= 0:
                     QMessageBox.warning(self, "Warning", "<font size = 4>Please input positive transfer amount", QMessageBox.Close)
                 elif from_balance < int(amount_input):
