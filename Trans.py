@@ -54,6 +54,25 @@ class TransferInputDialog(QDialog):
     def getInputs(self):
         return (self.to_acct.text(), self.amount.text(), self.message.text())
 
+class PasswordDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        self.first = QLabel(self)
+        self.first.setText("Please enter your password")
+        self.second =  PasswordEdit(self)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        
+        layout = QFormLayout(self)
+        layout.addRow(self.first)
+        layout.addRow(self.second)
+        layout.addWidget(buttonBox)
+        
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+    
+    def getInputs(self):
+        return (self.second.text())
 
 class Trans(QWidget):
     def __init__(self, parent, cur, getAccountId) -> None:
@@ -448,22 +467,32 @@ class Trans(QWidget):
                         to_balance = data2[3]
                         if to_curr != from_cur:
                             QMessageBox.warning(self, "Warning", "<font size = 5>Payee's Account Curreny type is not same<p style='margin:10px'><font size = 3>Please check it and try again", QMessageBox.Close)
-                        if from_acct == to_acct:
+                        elif from_acct == to_acct:
                             QMessageBox.warning(self, "Warning", "<font size = 5>Cannot transfer to your same account<p style='margin:10px'><font size = 3>Please check it and try again", QMessageBox.Close)
                         else:
-                            from_balance_after = float(from_balance) - float(amount_input)
-                            to_balance_after = float(to_balance) + float(amount_input)
-                            update1 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
-                            val = (from_balance_after, from_acct)
-                            self.cur.execute(update1, val)
-                            update2 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
-                            val = (to_balance_after, to_acct)
-                            self.cur.execute(update2, val)
-                            update3 =  "INSERT INTO Transaction VALUES (null, %s, %s, %s, %s, %s, %s, %s)"
-                            current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
-                            val = (from_acct, to_acct, float(amount_input), current_datetime, from_balance_after, to_balance_after, message_input)
-                            self.cur.execute(update3, val)
-                            QMessageBox.about(self, "Transfer Successfully", "<font size = 5>Your transfer transaction is completed<p style='margin:10px'><font size = 3>Please refresh the page by press SUBMIT button to see latest transaction")
+                            pwd = PasswordDialog()
+                            if pwd.exec():
+                                password = pwd.getInputs()
+                                sql = "SELECT A.account_id FROM account A, Customer C WHERE A.account_id = %s AND C.password = SHA2(%s, 224) AND A.customer_id = C.customer_id"
+                                input = (self.getAccoutId(), password)
+                                self.cur.execute(sql, input)
+                                result = self.cur.fetchone()
+                                if result:
+                                    from_balance_after = float(from_balance) - float(amount_input)
+                                    to_balance_after = float(to_balance) + float(amount_input)
+                                    update1 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
+                                    val = (from_balance_after, from_acct)
+                                    self.cur.execute(update1, val)
+                                    update2 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
+                                    val = (to_balance_after, to_acct)
+                                    self.cur.execute(update2, val)
+                                    update3 =  "INSERT INTO Transaction VALUES (null, %s, %s, %s, %s, %s, %s, %s)"
+                                    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+                                    val = (from_acct, to_acct, float(amount_input), current_datetime, from_balance_after, to_balance_after, message_input)
+                                    self.cur.execute(update3, val)
+                                    QMessageBox.about(self, "Transfer Successfully", "<font size = 5>Your transfer transaction is completed<p style='margin:10px'><font size = 3>Please refresh the page by press SUBMIT button to see latest transaction")
+                                else:
+                                    QMessageBox.warning(self, "Warning", "<font size = 5>Password Incorrect!<p><font size = 3>Please check your password", QMessageBox.Close)
         
 
 
