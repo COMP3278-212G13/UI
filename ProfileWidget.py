@@ -31,7 +31,7 @@ class ProfileWidget(QWidget):
         # logout button
         logout_btn = QPushButton(self)
         logout_btn.setText("logout")
-        logout_btn.move(1199, 0)
+        logout_btn.move(1180, 10)
         logout_btn.clicked.connect(logout)
         
         # image
