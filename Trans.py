@@ -59,6 +59,8 @@ class PasswordDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         
+        QDialog.setWindowTitle(self, 'Enter Password')
+        
         self.first = QLabel(self)
         self.first.setText("Please enter your password")
         self.second =  PasswordEdit(self)
