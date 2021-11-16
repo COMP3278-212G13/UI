@@ -67,29 +67,38 @@ class ProfileWidget(QWidget):
             SELECT *
             FROM (
                 SELECT account_id, type, currency, balance_or_bill
-		        FROM(
-		            SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CR.bill AS balance_or_bill
+		FROM(
+		    SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CR.bill AS balance_or_bill
                     FROM account A, credit CR
                     WHERE (
                         A.customer_id = %s
-	                    AND A.account_id = CR.account_id
+	                AND A.account_id = CR.account_id
+			AND A.currency = "HKD"
                     ) ORDER BY CR.month DESC limit 1
-		            ) AS temp
-		        ) AS temp1 UNION (
-		        SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, SUM(CU.balance) AS balance_or_bill
-		        FROM account A, current CU
-		        WHERE (
-	                A.customer_id = %s
-				    AND A.account_id = CU.account_id
-		        ) GROUP BY account_id
-		        )  UNION (
-		        SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, SUM(S.balance) AS balance_or_bill
-		        FROM account A, saving S
-		        WHERE (
-	                A.customer_id = %s
-				    AND A.account_id = S.account_id
-	            ) GROUP BY account_id
-		    ) ORDER BY account_id'''
+		) AS temp11 UNION (
+		    SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, CR.bill AS balance_or_bill
+                    FROM account A, credit CR
+                    WHERE (
+                        A.customer_id = %s
+	                AND A.account_id = CR.account_id
+			AND A.currency = "USD"
+                    ) ORDER BY CR.month DESC limit 1
+	        ) AS temp12
+            ) AS temp1 UNION (
+		SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, SUM(CU.balance) AS balance_or_bill
+		FROM account A, current CU
+		WHERE (
+	            A.customer_id = %s
+	            AND A.account_id = CU.account_id
+		) GROUP BY account_id
+            ) UNION (
+		SELECT A.account_id AS account_id, A.type AS type, A.currency AS currency, SUM(S.balance) AS balance_or_bill
+		FROM account A, saving S
+		WHERE (
+	            A.customer_id = %s
+	            AND A.account_id = S.account_id
+	        ) GROUP BY account_id
+            ) ORDER BY account_id'''
         input = (userid, userid, userid)
         self.cur.execute(sql, input)
         data = ()
