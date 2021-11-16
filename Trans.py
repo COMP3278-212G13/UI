@@ -1,6 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QFrame, QDateEdit, QDialog, QDialogButtonBox, QFormLayout
 from PyQt5.QtCore import Qt
+from qtwidgets import PasswordEdit
 
 from datetime import datetime, timedelta
 
