@@ -1,5 +1,5 @@
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QFrame, QDateEdit
+from PyQt5.QtWidgets import QAbstractItemView, QHeaderView, QMessageBox, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QWidget, QFrame, QDateEdit, QDialog
 from PyQt5.QtCore import Qt
 
 from datetime import datetime, timedelta
