@@ -12,7 +12,7 @@ from ProfileWidget import ProfileWidget
 from Trans import Trans
 
 
-myconn = MySQLConnection(host="localhost", user="root", passwd="20010109", database="facerecognition", autocommit=True)
+myconn = MySQLConnection(host="localhost", user="root", passwd="pwdpwd", database="facerecognition", autocommit=True)
 cur = myconn.cursor()
 
 
