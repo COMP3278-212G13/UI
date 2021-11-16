@@ -4,6 +4,60 @@ from PyQt5.QtCore import Qt
 
 from datetime import datetime, timedelta
 
+class TransferInputDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        QDialog.setWindowTitle(self, 'Transfer')
+        
+        sql = "SELECT A.account_id, A.currency, CU.balance FROM account A, current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" % self.getAccoutId()
+        cur.execute(sql)
+        data = cur.fetchone()
+        
+        self.from_acct = QLabel(self)
+        text = "From        Account " + str(data[0])
+        self.from_acct.setText(text)
+        self.from_acct.setFixedSize(150, 15)
+        
+        self.from_balance = QLabel(self)
+        text = "Balance:  " + str(data[2]) + "   " + str(data[1])
+        self.from_balance.setText(text)
+        self.from_balance.setFixedSize(150, 20)
+        
+        
+        self.to_acct = QLineEdit(self)
+        self.to_acct.setPlaceholderText("Payee's Account ID")
+        self.to_acct.setFixedSize(150, 40)
+        
+        self.amount = QLineEdit(self)
+        self.amount.setPlaceholderText("0.00")
+        self.amount.setFixedSize(150, 40)
+        
+        self.message = QLineEdit(self)
+        self.message.setPlaceholderText("optional")
+        self.message.setFixedSize(150, 40)
+        
+        self.noticelbl = QLabel(self)
+        self.noticelbl.setText('Notice: Only allow to tranfer between\ncurrent account with same currency')
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        
+        layout = QFormLayout(self)
+        layout.setLabelAlignment(QtCore.Qt.AlignCenter)
+        layout.addRow(self.from_acct)
+        layout.addRow(self.from_balance)
+        layout.addRow("To", self.to_acct)
+        layout.addRow("Amount", self.amount)
+        layout.addRow("Message", self.message)
+        layout.addRow(self.noticelbl)
+        layout.addWidget(buttonBox)
+        
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+    
+    def getInputs(self):
+        return (self.to_acct.text(), self.amount.text(), self.message.text())
+
+
 class Trans(QWidget):
     def __init__(self, parent, cur, getAccountId) -> None:
         super(Trans, self).__init__(parent)
@@ -15,7 +69,7 @@ class Trans(QWidget):
     
     def init_UI(self, parent):
         # set properties
-        self.parent().setWindowTitle("Transaction")
+        self.parent().setWindowTitle("Account Detail")
         
         now = datetime.now()
         
@@ -192,7 +246,7 @@ class Trans(QWidget):
         
         # Title
         title_label = QLabel(self)
-        title_label.setText("Transaction Record")
+        title_label.setText("Account Detail")
         title_label.setStyleSheet("font-size:22px;font-weight:bold;")
         title_label.move(10, 60)
         
@@ -360,5 +414,70 @@ class Trans(QWidget):
         table.resize(1200, 410)
         table_show(type, from_hr_input, to_hr_input, from_date, to_date, amount_min_input, amount_max_input)
 
+        def transfer():
+            from_acct = TransferInputDialog()
+            if from_acct.exec():
+                input = from_acct.getInputs()
+                to_input = input[0]
+                amount_input = input[1]
+                message_input = input[2]
+                sql1 = "SELECT A.account_id, A.currency, CU.balance FROM account A, current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" %self.getAccoutId()
+                cur.execute(sql1)
+                data1 = cur.fetchone()
+                from_acct = data1[0]
+                from_cur = data1[1]
+                from_balance = data1[2]
+                if to_input == "":
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Please input Payee's Account ID", QMessageBox.Close)
+                elif amount_input == "":
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Please input transfer amount", QMessageBox.Close)
+                elif to_input.isdigit() == False:
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Payee's Account ID should be a number. Please input correct Payee's Account ID", QMessageBox.Close)
+                elif amount_input.isdigit() == False:
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Transfer amount should be a number. Please input correct transfer amount", QMessageBox.Close)
+                elif int(amount_input) <= 0:
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Please input positive transfer amount", QMessageBox.Close)
+                elif from_balance < int(amount_input):
+                    QMessageBox.warning(self, "Warning", "<font size = 4>Transfer amount exceed your current account balance<p style='margin:10px'><font size = 3>Please try again", QMessageBox.Close)
+                else:
+                    sql2 = "SELECT A.account_id, A.type, A.currency, CU.balance FROM account A, current CU WHERE A.account_id = %s AND A.account_id = CU.account_id" % to_input
+                    cur.execute(sql2)
+                    data2 = cur.fetchone()
+                    if data2 == None:
+                        QMessageBox.warning(self, "Warning", "<font size = 5>Payee's Account ID is incorrect or not a current account<p style='margin:10px'><font size = 3>Please check it and try again", QMessageBox.Close)
+                    else:
+                        to_acct = data2[0]
+                        to_curr = data2[2]
+                        to_balance = data2[3]
+                        if to_curr != from_cur:
+                            QMessageBox.warning(self, "Warning", "<font size = 5>Payee's Account Curreny type is not same<p style='margin:10px'><font size = 3>Please check it and try again", QMessageBox.Close)
+                        if from_acct == to_acct:
+                            QMessageBox.warning(self, "Warning", "<font size = 5>Cannot transfer to your same account<p style='margin:10px'><font size = 3>Please check it and try again", QMessageBox.Close)
+                        else:
+                            from_balance_after = float(from_balance) - float(amount_input)
+                            to_balance_after = float(to_balance) + float(amount_input)
+                            update1 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
+                            val = (from_balance_after, from_acct)
+                            cur.execute(update1, val)
+                            update2 =  "UPDATE Current SET balance=%s WHERE account_id=%s"
+                            val = (to_balance_after, to_acct)
+                            cur.execute(update2, val)
+                            update3 =  "INSERT INTO Transaction VALUES (null, %s, %s, %s, %s, %s, %s, %s)"
+                            current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+                            val = (from_acct, to_acct, float(amount_input), current_datetime, from_balance_after, to_balance_after, message_input)
+                            cur.execute(update3, val)
+                            QMessageBox.about(self, "Transfer Successfully", "<font size = 5>Your transfer transaction is completed<p style='margin:10px'><font size = 3>Please refresh the page by press SUBMIT button to see latest transaction")
+        
+
+
+        
+        # transfer button
+        if type == "Current":
+            transfer_btn = QPushButton(self)
+            transfer_btn.setText("Transfer")
+            transfer_btn.move(1100, 198)
+            transfer_btn.clicked.connect(transfer)
+        
+        
         return
 
